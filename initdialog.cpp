@@ -13,8 +13,9 @@ InitDialog::~InitDialog()
 {
     delete ui;
 }
-
-void InitDialog::on_pushButton_clicked()
+\
+//选择目录按钮的槽函数
+void InitDialog::on_PathpushButton_clicked()
 {
     QString dir = QFileDialog::getExistingDirectory(
         this,

@@ -16,7 +16,7 @@ public:
     ~InitDialog();
 
 private slots:
-    void on_pushButton_clicked();
+    void on_PathpushButton_clicked();
 
 private:
     Ui::InitDialog *ui;
