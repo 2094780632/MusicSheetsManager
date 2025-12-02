@@ -17,6 +17,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void helpPage();
+    void deleteFirstStartSign();
+
 private:
     Ui::MainWindow *ui;
 };

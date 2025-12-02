@@ -24,6 +24,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         initdialog.h initdialog.cpp initdialog.ui
+        config.h config.cpp
+        resource.qrc
 
     )
 # Define target properties for Android with Qt 6 as:

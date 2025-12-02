@@ -18,6 +18,11 @@ public:
 private slots:
     void on_PathpushButton_clicked();
 
+    void on_buttonBox_accepted();
+
+signals:
+    void configPathChanged(const QString &path);
+
 private:
     Ui::InitDialog *ui;
 };
