@@ -1,15 +1,28 @@
 #include "mainwindow.h"
 #include "initdialog.h"
 #include "config.h"
+#include "consql.h"
 
+#include <QApplication>
+
+//SQLite
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
+
+//Path
 #include <QDir>
 #include <QApplication>
 #include <QFile>
 
-#include <QApplication>
+
+//Animation
 #include <QSplashScreen>
 #include <QPixmap>
 #include <QThread>
+
+//Messagebox
+#include <QMessageBox>
 
 bool isFirstRun()
 {
@@ -27,10 +40,10 @@ int main(int argc, char *argv[])
     //初始化设置
     //初次启动？
     QString configPath;
+    bool needInitDb=false;
     if(isFirstRun()){
         qDebug("FistRun!");
         InitDialog i;
-
 
         QObject::connect(&i, &InitDialog::configPathChanged,
                          [&configPath](const QString &path){
@@ -47,21 +60,28 @@ int main(int argc, char *argv[])
         QDir().mkpath(QFileInfo(configPath).absolutePath());
         //qDebug()<<configPath;
         AppConfig::instance(configPath)->load();
+        needInitDb=true;
     }else{
         QSettings s("2024413670","MusicSheetsManager");
         configPath = s.value("path").toString();
         QDir().mkpath(QFileInfo(configPath).absolutePath());
         AppConfig::instance(configPath)->load();
+        needInitDb=false;
     }
-
+    //数据库初始化
+    Consql data;
+    if(needInitDb)
+        data.initDb();
+    data.run("SELECT name FROM sqlite_master WHERE type='table';");
 
     //启动动画
+    /*
     QSplashScreen splash(QPixmap(":/splash.png"));
     splash.show();
     QThread::msleep(1000);
-
+    */
     MainWindow w;
-    splash.finish(&w);
+    //splash.finish(&w);
     w.show();
 
     //退出前保存

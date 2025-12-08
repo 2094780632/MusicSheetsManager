@@ -4,6 +4,10 @@
 #include <QAtomicPointer>
 #include <QMutex>
 
+#include <QStandardPaths>
+#include <QDir>
+#include <QRegularExpression>
+
 //全局单例Config设置
 
 class AppConfig : public QObject
@@ -18,6 +22,17 @@ public:
     QString version;
     QString userName;
     QString storagePath;
+
+    //读
+    QString getVersion()   const { return version; }
+    QString getUserName()  const { return userName; }
+    QString getStoragePath()const { return storagePath; }
+
+    //写
+    void setVersion(const QString &v)   { version = v; }
+    void setUserName(const QString &n)  { userName = n; }
+    void setStoragePath(const QString &p){ storagePath = p; }
+
 
 private:
     explicit AppConfig(const QString &iniPath, QObject *parent = nullptr);

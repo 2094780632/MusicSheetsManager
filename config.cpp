@@ -1,6 +1,5 @@
 #include "config.h"
-#include <QStandardPaths>
-#include <QDir>
+
 
 QAtomicPointer<AppConfig> AppConfig::m_instance = nullptr;
 QMutex                    AppConfig::m_mutex;
@@ -24,6 +23,8 @@ AppConfig* AppConfig::instance(const QString &iniPath)
 
 AppConfig::AppConfig(const QString &iniPath, QObject *parent)
     : QObject(parent), m_iniPath(iniPath){}
+
+//调用接口
 
 void AppConfig::load()
 {
