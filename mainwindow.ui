@@ -22,7 +22,76 @@
   <property name="windowIcon">
    <iconset theme="QIcon::ThemeIcon::AudioCard"/>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
+      <property name="opaqueResize">
+       <bool>true</bool>
+      </property>
+      <property name="childrenCollapsible">
+       <bool>false</bool>
+      </property>
+      <widget class="QWidget" name="">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QComboBox" name="comboBox">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <item>
+           <property name="text">
+            <string>默认</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>按歌名</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>按作者</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTreeView" name="treeView">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>0</height>
+           </size>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QListView" name="listView">
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="movement">
+        <enum>QListView::Movement::Static</enum>
+       </property>
+       <property name="viewMode">
+        <enum>QListView::ViewMode::IconMode</enum>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -37,6 +106,7 @@
      <string>文件(&amp;F)</string>
     </property>
     <addaction name="action_O"/>
+    <addaction name="action_M"/>
     <addaction name="separator"/>
     <addaction name="action_X"/>
    </widget>
@@ -45,6 +115,7 @@
      <string>帮助(&amp;H)</string>
     </property>
     <addaction name="action_about"/>
+    <addaction name="action_U"/>
    </widget>
    <widget class="QMenu" name="menu_S">
     <property name="title">
@@ -87,6 +158,22 @@
    </property>
    <property name="text">
     <string>清除首次启动标识(&amp;R)</string>
+   </property>
+  </action>
+  <action name="action_M">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::FolderOpen"/>
+   </property>
+   <property name="text">
+    <string>管理(&amp;M)</string>
+   </property>
+  </action>
+  <action name="action_U">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::HelpFaq"/>
+   </property>
+   <property name="text">
+    <string>用户手册(&amp;U)</string>
    </property>
   </action>
  </widget>

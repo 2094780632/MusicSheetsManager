@@ -12,6 +12,8 @@ Consql::Consql() {
         QMessageBox::critical(nullptr, "数据库错误", db.lastError().text());
         //return -1;
     }
+    //每次都要手动打开外键约束
+    Consql::run("PRAGMA foreign_keys = ON");
 }
 
 //Consql::Consql(bool flag){}
@@ -32,7 +34,6 @@ int Consql::initDb(){
     QStringList scripts = sql.split(';', Qt::SkipEmptyParts);
     for (QString& s : scripts) {
         //QString trimmed = s.trimmed();        Qt版本问题，原本用QStringRef s会报错
-
         QString trimmed = s.simplified();   //掐头去尾
         qDebug()<<"sqlite:"<<trimmed;
         if (trimmed.isEmpty()) continue;

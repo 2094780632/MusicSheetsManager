@@ -12,6 +12,10 @@ MainWindow::MainWindow(QWidget *parent)
     //窗体初始化 ui 里写了
     //setWindowTitle("Music Sheets Manager");
 
+    //spliter初始宽度设置
+    ui->splitter->setStretchFactor(0,1);
+    ui->splitter->setStretchFactor(1,5);
+
     //连接
     //帮助页面
     connect(ui->action_about,&QAction::triggered,this,&MainWindow::helpPage);

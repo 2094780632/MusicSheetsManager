@@ -27,6 +27,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         config.h config.cpp
         resource.qrc
         consql.h consql.cpp
+        importdialog.h importdialog.cpp importdialog.ui
     )
 
     qt6_import_plugins(MusicSheetsManager
