@@ -35,10 +35,10 @@
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QComboBox" name="comboBox">
+         <widget class="QComboBox" name="ComboBox">
           <property name="minimumSize">
            <size>
             <width>100</width>
@@ -47,7 +47,7 @@
           </property>
           <item>
            <property name="text">
-            <string>默认</string>
+            <string>全部</string>
            </property>
           </item>
           <item>
@@ -58,6 +58,11 @@
           <item>
            <property name="text">
             <string>按作者</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>按调性</string>
            </property>
           </item>
          </widget>
@@ -122,6 +127,7 @@
      <string>设置(&amp;S)</string>
     </property>
     <addaction name="action_R"/>
+    <addaction name="action_deldata"/>
    </widget>
    <addaction name="menu_f"/>
    <addaction name="menu_H"/>
@@ -174,6 +180,14 @@
    </property>
    <property name="text">
     <string>用户手册(&amp;U)</string>
+   </property>
+  </action>
+  <action name="action_deldata">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::EditDelete"/>
+   </property>
+   <property name="text">
+    <string>清空全部数据</string>
    </property>
   </action>
  </widget>

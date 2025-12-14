@@ -1,6 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>splash.png</file>
+    </qresource>
+    <qresource lang="sql" prefix="/sql">
         <file>init.sql</file>
+        <file>clear.sql</file>
     </qresource>
 </RCC>

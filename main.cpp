@@ -27,10 +27,7 @@
 bool isFirstRun()
 {
     QSettings s("2024413670", "MusicSheetsManager");
-    bool first = !s.contains("hasRun");
-    if (first)
-        s.setValue("hasRun", true);//标识非第一次启动
-    return first;
+    return !s.contains("hasRun");
 }
 
 int main(int argc, char *argv[])
@@ -41,6 +38,7 @@ int main(int argc, char *argv[])
     //初次启动？
     QString configPath;
     bool needInitDb=false;
+
     if(isFirstRun()){
         qDebug("FistRun!");
         InitDialog i;
@@ -50,16 +48,22 @@ int main(int argc, char *argv[])
                              configPath = path;
                          });
 
-        if (i.exec() != QDialog::Accepted)   // 点取消或×就结束
-            return 0;
+        if (i.exec() != QDialog::Accepted||configPath.isEmpty())   // 点取消或×就结束
+        {
+            QCoreApplication::exit(-1);
+            return -1;
+        }
 
         //初始化Config
         configPath = QDir::cleanPath(configPath+"/config.ini");
         QSettings s("2024413670","MusicSheetsManager");
         s.setValue("path",configPath);
+        s.setValue("hasRun", true);
+
         QDir().mkpath(QFileInfo(configPath).absolutePath());
         //qDebug()<<configPath;
         AppConfig::instance(configPath)->load();
+
         needInitDb=true;
     }else{
         QSettings s("2024413670","MusicSheetsManager");
@@ -69,10 +73,15 @@ int main(int argc, char *argv[])
         needInitDb=false;
     }
     //数据库初始化
-    Consql data;
+    QString dbPath = QDir(AppConfig::instance()->getStoragePath()).filePath("data.db");
+    if (!Consql::instance(dbPath)){  //首次打开单例
+        QMessageBox::critical(nullptr, "致命错误", "无法打开数据库！");
+        return -1;
+    }
+
     if(needInitDb)
-        data.initDb();
-    data.run("SELECT name FROM sqlite_master WHERE type='table';");
+        Consql::instance()->initDb();
+    Consql::instance()->run("SELECT name FROM sqlite_master WHERE type='table';");
 
     //启动动画
     /*

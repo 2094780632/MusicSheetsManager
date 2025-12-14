@@ -2,6 +2,10 @@
 #define INITDIALOG_H
 
 #include <QDialog>
+#include <QFileDialog>
+#include <QDir>
+#include <QMessageBox>
+#include <QStandardPaths>
 
 namespace Ui {
 class InitDialog;
