@@ -22,6 +22,7 @@ class ImportDialog : public QDialog
 public:
     explicit ImportDialog(QWidget *parent = nullptr);
     ~ImportDialog();
+    void loadCategories();
 
     qint64 insertScore();
 

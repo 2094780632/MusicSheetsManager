@@ -28,18 +28,36 @@ MainWindow::MainWindow(QWidget *parent)
     ui->listView->setMovement(QListView::Static);
     ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    //treeView初始化
+    //只读
+    ui->treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    m_treeModel = new QStandardItemModel(this);
+    m_treeModel->setHorizontalHeaderLabels(QStringList() << "分组" << "数量");
+    ui->treeView->setModel(m_treeModel);
+    ui->treeView->setRootIsDecorated(true);
+
+    connect(ui->comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int idx){
+                rebuildTree(static_cast<Dim>(idx));
+            });
+
+
+
+    rebuildTree(ByAll);
     refreshScoreGrid();
 
     //连接
     //导入乐谱
     connect(ui->action_O,&QAction::triggered,this,&MainWindow::importSheet);
 
+    //ListView双击乐谱
     connect(ui->listView, &QListView::doubleClicked,
             this, [this](const QModelIndex &idx){
                 if (!idx.isValid()) return;
                 qint64 id = idx.data(Qt::UserRole).toLongLong();
                 qDebug() << "打开乐谱" << id;
-                // 这里可以弹详情窗口 / 打开 PDF
+                //打开
             });
 
     //listView菜单
@@ -67,6 +85,30 @@ MainWindow::MainWindow(QWidget *parent)
             });
     addAction(refreshAct);
 
+    //treeView点击
+    connect(ui->treeView, &QTreeView::clicked,
+            this, [this](const QModelIndex &idx){
+                if (!idx.isValid()) return;
+
+                Dim dim  = static_cast<Dim>(ui->comboBox->currentIndex());
+                QString val;
+
+                // 1. 全部维度 → 固定值
+                if (dim == ByAll) {
+                    val = "-1";
+                }
+                // 2. 其他维度 → 一律用「分组名」过滤
+                else {
+                    // 先找到这一行的「根节点文字」
+                    QModelIndex rootIdx = idx;
+                    while (rootIdx.parent().isValid())
+                        rootIdx = rootIdx.parent();
+                    val = rootIdx.data(Qt::DisplayRole).toString();
+                }
+
+                refreshScoreGrid(dim, val);
+            });
+
 }
 
 MainWindow::~MainWindow()
@@ -78,7 +120,9 @@ MainWindow::~MainWindow()
 int MainWindow::importSheet(){
     ImportDialog i;
     if (i.exec() == QDialog::Accepted) {
-        refreshScoreGrid();                //立刻重拉数据
+        //立刻重拉数据
+        rebuildTree(ByAll);
+        refreshScoreGrid();
     }
     return 1;
 }
@@ -155,8 +199,14 @@ void MainWindow::clearData(){
     qDebug("clearData");
 }
 
+//刷新listView
 void MainWindow::refreshScoreGrid(Dim dim, const QString &value)
 {
+    if (m_lastFilter.dim == dim && m_lastFilter.value == value) {
+        qDebug() << "treeView:same filter, skip tree rebuild";
+        return;
+    }
+
     m_scoreModel->clear();
 
     QSqlQuery q(Consql::instance()->database());
@@ -218,13 +268,13 @@ void MainWindow::refreshScoreGrid(Dim dim, const QString &value)
             }
         }
         if (pm.isNull())
-            pm = QPixmap(":/icons/no_cover.png");   // 缺省图
+            //pm = QPixmap(":/no_cover.png");   // 缺省图
 
         pm = pm.scaled(120, 160, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
         QStandardItem *item = new QStandardItem(QIcon(pm), name);
         item->setData(id, Qt::UserRole);
-        QString tooltipText = QString("%1 by %2, %3调, %4").arg(name)
+        QString tooltipText = QString("%1 by %2 , %3 调, 于 %4 导入").arg(name)
                                   .arg(composer)
                                   .arg(key)
                                   .arg(date);
@@ -232,7 +282,12 @@ void MainWindow::refreshScoreGrid(Dim dim, const QString &value)
 
         m_scoreModel->appendRow(item);
     }
-    qDebug("refresh");
+
+    //指纹
+    m_lastFilter.dim  = dim;
+    m_lastFilter.value = value;
+
+    qDebug("treeView:refresh");
 }
 
 //listView右键菜单
@@ -245,9 +300,9 @@ void MainWindow::onListViewCustomMenu(const QPoint &pos)
     QString songName = index.data(Qt::DisplayRole).toString();
 
     QMenu menu(this);
-    QAction *openAct  = menu.addAction("打开乐谱");
-    QAction *editAct  = menu.addAction("编辑信息");
-    QAction *delAct   = menu.addAction("删除乐谱");
+    QAction *openAct  = menu.addAction("打开");
+    QAction *editAct  = menu.addAction("编辑");
+    QAction *delAct   = menu.addAction("删除");
 
     QAction *selected = menu.exec(ui->listView->viewport()->mapToGlobal(pos));
     if (!selected) return;
@@ -261,5 +316,79 @@ void MainWindow::onListViewCustomMenu(const QPoint &pos)
     } else if (selected == delAct) {
         qDebug() << "删除" << songId;
         // TODO: 二次确认后调数据库删除 + 本地文件
+    }
+}
+
+//刷新treeView
+void MainWindow::rebuildTree(Dim dim)
+{
+
+    m_treeModel->clear();
+    m_treeModel->setHorizontalHeaderLabels(QStringList() << "分组");
+    ui->treeView->setRootIsDecorated(true);
+
+    /* 统一查询：按维度排序，避免多次 SQL */
+    QSqlQuery q(Consql::instance()->database());
+    switch (dim) {
+    case ByAll:
+        q.exec("SELECT s_id, s_name FROM Song ORDER BY s_addDate DESC");
+        break;
+    case ByName:
+        q.exec("SELECT s_id, s_name FROM Song ORDER BY s_name");
+        break;
+    case ByComposer:
+        q.exec("SELECT s_id, s_name, s_composer FROM Song ORDER BY s_composer");
+        break;
+    case ByKey:
+        q.exec("SELECT s_id, s_name, s_key FROM Song ORDER BY s_key");
+        break;
+    case ByCategory:
+        q.exec("SELECT s.s_id, s.s_name, COALESCE(c.c_name,'未分类') "
+               "FROM Song s LEFT JOIN Category c ON s.c_id = c.c_id "
+               "ORDER BY c.c_name, s.s_name");
+        break;
+    }
+
+    /* 内存分组：key → [(id, name), ...] */
+    QMap<QString, QList<QPair<qint64, QString>>> groups;
+
+    while (q.next()) {
+        qint64  id   = q.value(0).toLongLong();
+        QString name = q.value(1).toString();
+        QString key;                    // 分组依据
+        switch (dim) {
+        case ByAll:
+            key = "全部";               // 显示文字
+            break;
+        case ByName:
+            key = name.isEmpty() ? QString("?") : name.left(1);   // 只取首字符
+            break;
+        case ByComposer:
+            key = q.value(2).toString();
+            if (key.isEmpty()) key = "未知";
+            break;
+        case ByKey:
+            key = q.value(2).toString();
+            if (key.isEmpty()) key = "未知";
+            break;
+        case ByCategory:
+            key = q.value(2).toString();   // 已经 COALESCE
+            break;
+        }
+        groups[key].append(qMakePair(id, name));
+    }
+
+    /* 填树 */
+    for (auto it = groups.begin(); it != groups.end(); ++it) {
+        const QString &groupName = it.key();
+        QStandardItem *rootItem = new QStandardItem(groupName);
+        rootItem->setData((dim == ByAll) ? QVariant(-1) : QVariant(groupName), Qt::UserRole);
+        m_treeModel->appendRow(rootItem);
+
+        for (const auto &pair : it.value()) {
+            QStandardItem *child = new QStandardItem(pair.second);
+            child->setData(pair.first, Qt::UserRole);
+            rootItem->appendRow(child);
+        }
     }
 }

@@ -36,6 +36,9 @@ ImportDialog::ImportDialog(QWidget *parent)
     connect(ui->file_listView, &QListView::doubleClicked,
             this, &ImportDialog::onFileListDoubleClicked);
 
+    //分类选项加载
+    loadCategories();
+
 }
 
 ImportDialog::~ImportDialog()
@@ -89,7 +92,7 @@ void ImportDialog::on_buttonBox_accepted()
     meta.name      = ui->s_name_lineEdit->text().trimmed();
     meta.composer  = ui->s_composer_lineEdit->text().trimmed();
     meta.key       = ui->s_key_comboBox->currentText();
-    meta.categoryId= ui->c_id_comboBox->currentIndex(); // 0 = NULL
+    meta.categoryId = ui->c_id_comboBox->currentData().toInt();
     meta.version   = ui->s_version_lineEdit->text().trimmed();
     meta.type      = ui->s_type_comboBox->currentText();
     meta.remark    = ui->textEdit->toPlainText().trimmed();
@@ -113,3 +116,18 @@ void ImportDialog::on_buttonBox_accepted()
     accept();
 }
 
+//分类下拉选项读取
+void ImportDialog::loadCategories()
+{
+    ui->c_id_comboBox->clear();
+    // 第 0 项：「无」→ id = 0
+    ui->c_id_comboBox->addItem("无", 0);
+
+    QSqlQuery q(Consql::instance()->database());
+    q.exec("SELECT c_id, c_name FROM Category ORDER BY c_name");
+    while (q.next()) {
+        int  id   = q.value(0).toInt();
+        QString name = q.value(1).toString();
+        ui->c_id_comboBox->addItem(name, id);   // 用户数据 = 真实主键
+    }
+}

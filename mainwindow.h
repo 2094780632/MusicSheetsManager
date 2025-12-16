@@ -30,8 +30,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    enum Dim { ByAll = -1, ByCategory, ByComposer, ByKey, ByName };
-    void refreshScoreGrid(Dim dim = ByAll, const QString &value = {});
+
 
 private slots:
     int importSheet();
@@ -43,5 +42,16 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QStandardItemModel *m_scoreModel;
+    QStandardItemModel *m_treeModel; //treeView
+    enum Dim { ByAll = 0, ByName, ByComposer, ByKey, ByCategory };
+    void rebuildTree(Dim dim);
+
+    void refreshScoreGrid(Dim dim = ByAll, const QString &value = {});
+    //内容指纹锁
+    struct FilterCache {
+        Dim  dim  = ByAll;
+        QString value = "-";
+    };
+    FilterCache m_lastFilter;
 };
 #endif // MAINWINDOW_H
