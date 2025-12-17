@@ -65,6 +65,11 @@
             <string>按调性</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>按分类</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item>

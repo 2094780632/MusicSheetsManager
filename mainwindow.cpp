@@ -105,7 +105,7 @@ MainWindow::MainWindow(QWidget *parent)
                         rootIdx = rootIdx.parent();
                     val = rootIdx.data(Qt::DisplayRole).toString();
                 }
-
+                qDebug()<<"treeView:click->"<<val;
                 refreshScoreGrid(dim, val);
             });
 
@@ -219,8 +219,19 @@ void MainWindow::refreshScoreGrid(Dim dim, const QString &value)
         if (value.isEmpty() || value == "-1")
             q.exec("SELECT s_id, s_name, s_composer, s_key, s_addDate FROM Song ORDER BY s_addDate DESC");
         else
-            q.exec(QString("SELECT s_id, s_name, s_composer, s_key, s_addDate FROM Song WHERE c_id = %1 ORDER BY s_addDate DESC")
-                       .arg(value.toInt()));
+            if(value == "未分类"){
+            q.exec(QString("SELECT s_id, s_name, s_composer, s_key, s_addDate, c_id "
+                           "FROM Song "
+                           "WHERE c_id IS NULL "
+                           "ORDER BY s_addDate DESC"));
+        }else{
+            q.exec(QString("SELECT s.s_id, s.s_name, s.s_composer, s.s_key, s.s_addDate, s.c_id "
+                           "FROM Song s "
+                           "INNER JOIN Category c ON s.c_id = c.c_id "
+                           "WHERE c.c_name = '%1' "
+                           "ORDER BY s.s_addDate DESC").arg(value));
+        }
+
         break;
     case ByComposer:
         q.prepare("SELECT s_id, s_name, s_composer, s_key, s_addDate FROM Song WHERE s_composer = ? ORDER BY s_addDate DESC");
@@ -236,6 +247,9 @@ void MainWindow::refreshScoreGrid(Dim dim, const QString &value)
         q.prepare("SELECT s_id, s_name, s_composer, s_key, s_addDate FROM Song WHERE s_name LIKE ? ORDER BY s_addDate DESC");
         q.addBindValue(value + '%');
         q.exec();
+        break;
+    default:
+        qDebug("listView:default case");
         break;
     }
 
@@ -302,6 +316,7 @@ void MainWindow::onListViewCustomMenu(const QPoint &pos)
     QMenu menu(this);
     QAction *openAct  = menu.addAction("打开");
     QAction *editAct  = menu.addAction("编辑");
+    QAction *infoAct  = menu.addAction("详情");
     QAction *delAct   = menu.addAction("删除");
 
     QAction *selected = menu.exec(ui->listView->viewport()->mapToGlobal(pos));
@@ -313,6 +328,9 @@ void MainWindow::onListViewCustomMenu(const QPoint &pos)
     } else if (selected == editAct) {
         qDebug() << "编辑" << songId;
         // TODO: 弹编辑对话框
+    } else if (selected == infoAct) {
+        qDebug() << "详情" << songId;
+
     } else if (selected == delAct) {
         qDebug() << "删除" << songId;
         // TODO: 二次确认后调数据库删除 + 本地文件
@@ -343,7 +361,7 @@ void MainWindow::rebuildTree(Dim dim)
         q.exec("SELECT s_id, s_name, s_key FROM Song ORDER BY s_key");
         break;
     case ByCategory:
-        q.exec("SELECT s.s_id, s.s_name, COALESCE(c.c_name,'未分类') "
+        q.exec("SELECT s.s_id, s.s_name, COALESCE(c.c_name,'未分类'), COALESCE(c.c_id,-1) "
                "FROM Song s LEFT JOIN Category c ON s.c_id = c.c_id "
                "ORDER BY c.c_name, s.s_name");
         break;
@@ -373,7 +391,7 @@ void MainWindow::rebuildTree(Dim dim)
             break;
         case ByCategory:
             key = q.value(2).toString();   // 已经 COALESCE
-            break;
+            break;         // 统一 (qint64, QString)
         }
         groups[key].append(qMakePair(id, name));
     }
