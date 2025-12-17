@@ -3,6 +3,7 @@
 #include "consql.h"
 #include "config.h"
 #include "importdialog.h"
+#include "scoreviewer.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -58,6 +59,8 @@ MainWindow::MainWindow(QWidget *parent)
                 qint64 id = idx.data(Qt::UserRole).toLongLong();
                 qDebug() << "打开乐谱" << id;
                 //打开
+                auto *viewer = new ScoreViewer(id, this); // this = 主窗口，做父对象方便生命周期管理
+                viewer->show();
             });
 
     //listView菜单
