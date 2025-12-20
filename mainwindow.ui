@@ -140,7 +140,16 @@
     <addaction name="action_R"/>
     <addaction name="action_deldata"/>
    </widget>
+   <widget class="QMenu" name="menu_T">
+    <property name="title">
+     <string>工具(&amp;T)</string>
+    </property>
+    <addaction name="action_B"/>
+    <addaction name="action"/>
+    <addaction name="action_2"/>
+   </widget>
    <addaction name="menu_f"/>
+   <addaction name="menu_T"/>
    <addaction name="menu_H"/>
    <addaction name="menu_S"/>
   </widget>
@@ -199,6 +208,30 @@
    </property>
    <property name="text">
     <string>清空全部数据</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::GoUp"/>
+   </property>
+   <property name="text">
+    <string>导出乐谱数据</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::GoDown"/>
+   </property>
+   <property name="text">
+    <string>导入乐谱数据</string>
+   </property>
+  </action>
+  <action name="action_B">
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::MediaEject"/>
+   </property>
+   <property name="text">
+    <string>节拍器(&amp;B)</string>
    </property>
   </action>
  </widget>

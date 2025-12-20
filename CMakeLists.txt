@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql Pdf)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql Pdf)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Sql Pdf PdfWidgets)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Sql Pdf PdfWidgets)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -57,6 +57,7 @@ target_link_libraries(MusicSheetsManager
     PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
             Qt${QT_VERSION_MAJOR}::Sql
             Qt${QT_VERSION_MAJOR}::Pdf
+            Qt${QT_VERSION_MAJOR}::PdfWidgets
 )
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.

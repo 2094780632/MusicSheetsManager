@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, [this](const QModelIndex &idx){
                 if (!idx.isValid()) return;
                 qint64 id = idx.data(Qt::UserRole).toLongLong();
-                qDebug() << "打开乐谱" << id;
+                qDebug() << "MainWindow:打开乐谱" << id;
                 //打开
                 auto *viewer = new ScoreViewer(id, this); // this = 主窗口，做父对象方便生命周期管理
                 viewer->show();
