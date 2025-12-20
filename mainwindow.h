@@ -30,11 +30,10 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
-
 private slots:
     int importSheet();
     void helpPage();
+    void userManual();
     void deleteFirstStartSign();
     void clearData();
     void onListViewCustomMenu(const QPoint &pos);

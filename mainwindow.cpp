@@ -71,6 +71,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     //帮助页面
     connect(ui->action_about,&QAction::triggered,this,&MainWindow::helpPage);
+    //用户手册
+    connect(ui->action_U,&QAction::triggered,this,&MainWindow::userManual);
     //重置初次启动标识
     connect(ui->action_R,&QAction::triggered,this,&MainWindow::deleteFirstStartSign);
     //清空数据库
@@ -135,7 +137,15 @@ void MainWindow::helpPage(){
     QMessageBox::information(this,
                              "帮助",
                              "Music Sheets Manager ver 1.0");
-    qDebug("helpPage");
+    qDebug("MainWindow:helpPage");
+}
+
+//用户手册
+void MainWindow::userManual(){
+    QMessageBox::information(this,
+                             "占位符",
+                             "Sth Here");
+    qDebug("MainWindow:userManual");
 }
 
 //重置初次启动标识
@@ -145,7 +155,7 @@ void MainWindow::deleteFirstStartSign(){
     QMessageBox::information(this,
                              "成功！",
                              "已清除注册表！");
-    qDebug("deleteFirstStartSign");
+    qDebug("MainWindow:deleteFirstStartSign");
 }
 
 //清空数据库

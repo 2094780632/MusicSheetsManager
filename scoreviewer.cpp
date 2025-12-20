@@ -104,7 +104,8 @@ bool ScoreViewer::eventFilter(QObject *obj, QEvent *event)
                     zoomPdfIn();
                 } else {
                     // 向下滚动，缩小
-                    zoomPdf(1.0 / scaleFactor);
+                    //zoomPdf(1.0 / scaleFactor);
+                    zoomPdfOut();
                 }
                 return true; // 事件已处理
             }
@@ -168,6 +169,7 @@ void ScoreViewer::showImg(qint64 index){
     ui->graphicsView->verticalScrollBar()->setValue(0);
     //ui->graphicsView->fitInView(pixmapItem->boundingRect(), Qt::KeepAspectRatio);
     ui->graphicsView->setInteractive(true);
+    ui->graphicsView->centerOn(pixmapItem->boundingRect().center().x(), pixmapItem->boundingRect().top());
 }
 
 //PDF
@@ -244,14 +246,14 @@ void ScoreViewer::zoomPdf(qreal factor)
 // 放大
 void ScoreViewer::zoomPdfIn()
 {
-    qDebug()<<"Pdf:ZoomIn";
+    //qDebug()<<"Pdf:ZoomIn";
     zoomPdf(1.2);  // 放大20%
 }
 
 // 缩小
 void ScoreViewer::zoomPdfOut()
 {
-    qDebug()<<"Pdf:ZoomOut";
+    //qDebug()<<"Pdf:ZoomOut";
     zoomPdf(1.0/1.2);  // 缩小到83%
 }
 
@@ -316,10 +318,10 @@ void ScoreViewer::goToPage(int pageIndex)
     // 使用 QPdfPageNavigator 跳转到指定页面
     QPdfPageNavigator *navigator = m_pdfView->pageNavigator();
     if (navigator) {
-        // 跳转到指定页面，位置(0,0)表示页面左上角
+        //跳转到指定页面，位置(0,0)表示页面左上角
         navigator->jump(pageIndex, QPointF(0, 0), 0);
     } else {
-        // 如果 navigator 不存在，使用备用方法
+        //如果 navigator 不存在，使用备用方法
         m_pdfView->pageNavigator()->jump(pageIndex, {}, 0);
     }
 
