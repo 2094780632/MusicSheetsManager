@@ -25,6 +25,20 @@ ScoreViewer::ScoreViewer(qint64 songId,QWidget *parent)
     ui->addDate->setText(si.m_s_addDate);
     ui->version->setText(si.m_s_version);
     ui->remark->setText(si.m_s_remark);
+    if(si.m_c_id>0){
+        QSqlQuery q(Consql::instance()->database());
+        q.prepare("SELECT c_id, c_name FROM Category WHERE c_id=?");
+        q.addBindValue(si.m_c_id);
+        if (!q.exec() || !q.next()) {
+            qDebug()<<"Manager:category not found";
+            ui->category->setText("无");
+        }else{
+            QString cname=q.value(1).toString();
+            ui->category->setText(cname);
+        }
+    }else{
+        ui->category->setText("无");
+    }
 
     //显示乐谱
     loadScore(songId);

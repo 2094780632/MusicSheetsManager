@@ -35,7 +35,7 @@
       <property name="childrenCollapsible">
        <bool>false</bool>
       </property>
-      <widget class="QListWidget" name="listWidget"/>
+      <widget class="QListView" name="listView"/>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
@@ -242,7 +242,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QTextEdit" name="textEdit"/>
+             <widget class="QTextEdit" name="s_remark_textEdit"/>
             </item>
            </layout>
           </item>

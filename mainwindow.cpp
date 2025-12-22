@@ -2,8 +2,10 @@
 #include "./ui_mainwindow.h"
 #include "consql.h"
 #include "config.h"
+
 #include "importdialog.h"
 #include "scoreviewer.h"
+#include "manager.h""
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -42,8 +44,6 @@ MainWindow::MainWindow(QWidget *parent)
             this, [this](int idx){
                 rebuildTree(static_cast<Dim>(idx));
             });
-
-
 
     rebuildTree(ByAll);
     refreshScoreGrid();
@@ -428,5 +428,16 @@ void MainWindow::rebuildTree(Dim dim)
 
 //管理
 void MainWindow::toManager(){
+    qDebug()<<"MainWindow:toManager";
+    Manager *m=new Manager(this);
 
+    //阻塞主窗口启动
+    m->setWindowModality(Qt::WindowModal);
+    m->setAttribute(Qt::WA_DeleteOnClose);
+    connect(m, &Manager::destroyed, this, [this](){
+        this->setEnabled(true);
+    });
+    //this->setEnabled(false);
+
+    m->show();
 }
