@@ -161,10 +161,13 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item alignment="Qt::AlignmentFlag::AlignHCenter">
         <widget class="QPushButton" name="btnPlayCfg">
          <property name="text">
-          <string>播放设置</string>
+          <string>节拍器</string>
+         </property>
+         <property name="icon">
+          <iconset theme="QIcon::ThemeIcon::MediaEject"/>
          </property>
         </widget>
        </item>

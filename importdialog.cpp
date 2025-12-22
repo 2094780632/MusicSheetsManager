@@ -39,6 +39,10 @@ ImportDialog::ImportDialog(QWidget *parent)
     //分类选项加载
     loadCategories();
 
+    // 连接类型切换信号，切换时清空文件列表
+    connect(ui->s_type_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &ImportDialog::onTypeChanged);
+
 }
 
 ImportDialog::~ImportDialog()
@@ -130,4 +134,16 @@ void ImportDialog::loadCategories()
         QString name = q.value(1).toString();
         ui->c_id_comboBox->addItem(name, id);   // 用户数据 = 真实主键
     }
+}
+
+//当文件类型改变时清空文件列表
+void ImportDialog::onTypeChanged(int index)
+{
+    Q_UNUSED(index); // 不使用index参数，但保持函数签名一致
+
+    // 清空文件列表模型
+    m_fileModel->setStringList(QStringList());
+
+    // 清空路径显示
+    ui->fPathlineEdit->clear();
 }

@@ -69,6 +69,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->listView, &QListView::customContextMenuRequested,
             this, &MainWindow::onListViewCustomMenu);
 
+    //管理页面
+    connect(ui->action_M,&QAction::triggered,this,&MainWindow::toManager);
     //帮助页面
     connect(ui->action_about,&QAction::triggered,this,&MainWindow::helpPage);
     //用户手册
@@ -422,4 +424,9 @@ void MainWindow::rebuildTree(Dim dim)
             rootItem->appendRow(child);
         }
     }
+}
+
+//管理
+void MainWindow::toManager(){
+
 }

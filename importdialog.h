@@ -30,6 +30,7 @@ private slots:
     void on_fPathpushButton_clicked();
     void on_buttonBox_accepted();
     void onFileListDoubleClicked(const QModelIndex &index);
+    void onTypeChanged(int index);
 
 private:
     Ui::ImportDialog *ui;

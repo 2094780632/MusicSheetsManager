@@ -32,6 +32,7 @@ public:
 
 private slots:
     int importSheet();
+    void toManager();
     void helpPage();
     void userManual();
     void deleteFirstStartSign();
