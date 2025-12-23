@@ -62,7 +62,7 @@ void ScoreViewer::loadSongInfo(qint64 id){
     q.prepare("SELECT s_id,s_name,s_composer,s_key,s_addDate,s_isFav,s_remark,s_version,s_type,c_id FROM Song WHERE s_id=? LIMIT 1");
     q.addBindValue(id);
     if (!q.exec() || !q.next()) {
-        qDebug()<<"ScoreViewer:查找歌曲失败";
+        qDebug()<<"ScoreViewer:Song NOT FOUND";
         return;
     }
 
@@ -85,7 +85,7 @@ void ScoreViewer::loadScore(qint64 id){
     q.addBindValue(id);
     q.addBindValue(id);
     if (!q.exec() || !q.next()) {
-        qDebug()<<"ScoreViewer:无关联文件";
+        qDebug()<<"ScoreViewer:NO RELAT FILE";
         return;
     }else{
         m_f_path = q.value(0).toString();
@@ -200,7 +200,7 @@ void ScoreViewer::showPdf(){
     // 获取 verticalLayout_2
     QVBoxLayout *rightLayout = ui->verticalLayout_2;
     if (!rightLayout) {
-        qDebug() << "错误：verticalLayout_2 为 nullptr";
+        qDebug() << "Pdf:错误,verticalLayout_2 为 nullptr";
         return;
     }
 
@@ -215,7 +215,7 @@ void ScoreViewer::showPdf(){
     }
 
     if (graphicsIndex == -1) {
-        qDebug() << "在 verticalLayout_2 中找不到 graphicsView";
+        qDebug() << "Pdf:在 verticalLayout_2 中找不到 graphicsView";
         return;
     }
 

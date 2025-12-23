@@ -4,6 +4,7 @@
 #include <QTabWidget>
 #include <QDialog>
 #include <QStandardItem>
+#include <QStringListModel>
 
 namespace Ui {
 class Manager;
@@ -19,13 +20,19 @@ public:
 
 private slots:
     void loadEditInfo(const QModelIndex &index);
+    void loadCateInfo(const QModelIndex &index);
+    void onTypeChanged(int index);
+    void onFileListDoubleClicked(const QModelIndex &index);
 
 private:
     Ui::Manager *ui;
     QStandardItemModel *m_listModel;
+    QStandardItemModel *m_file_list;
+    QStringList m_files;
 
     void loadSongList();
     void loadCategories();
+    void fileListUpdate();
 
     struct songInfo
     {
