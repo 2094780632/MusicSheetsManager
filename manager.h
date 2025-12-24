@@ -4,7 +4,9 @@
 #include <QTabWidget>
 #include <QDialog>
 #include <QStandardItem>
+#include <QVariant>
 #include <QStringListModel>
+#include <QFileDialog>
 
 namespace Ui {
 class Manager;
@@ -24,6 +26,10 @@ private slots:
     void onTypeChanged(int index);
     void onFileListDoubleClicked(const QModelIndex &index);
 
+    void on_pushButton_delsong_clicked();
+    void on_pushButton_savesong_clicked();
+    void on_fPathpushButton_clicked();
+
 private:
     Ui::Manager *ui;
     QStandardItemModel *m_listModel;
@@ -33,6 +39,10 @@ private:
     void loadSongList();
     void loadCategories();
     void fileListUpdate();
+
+    void clearAllFields();
+    void resetInternalState();
+    void clearEditFields();
 
     struct songInfo
     {

@@ -33,6 +33,8 @@ ImportDialog::ImportDialog(QWidget *parent)
     ui->file_listView->setModel(m_fileModel);
 
     ui->file_listView->setEditTriggers(QAbstractItemView::NoEditTriggers); // 禁止编辑
+
+    //双击删除
     connect(ui->file_listView, &QListView::doubleClicked,
             this, &ImportDialog::onFileListDoubleClicked);
 

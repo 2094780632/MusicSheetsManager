@@ -128,6 +128,8 @@ int MainWindow::importSheet(){
     ImportDialog i;
     if (i.exec() == QDialog::Accepted) {
         //立刻重拉数据
+        m_lastFilter.dim=ByAll;
+        m_lastFilter.value="-";
         rebuildTree(ByAll);
         refreshScoreGrid();
     }
@@ -436,8 +438,13 @@ void MainWindow::toManager(){
     m->setAttribute(Qt::WA_DeleteOnClose);
     connect(m, &Manager::destroyed, this, [this](){
         this->setEnabled(true);
+        m_lastFilter.dim=ByAll;
+        m_lastFilter.value='-';
+        rebuildTree(ByAll);
+        refreshScoreGrid();
     });
     //this->setEnabled(false);
 
     m->show();
+
 }

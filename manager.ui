@@ -286,7 +286,7 @@
        <bool>false</bool>
       </property>
       <widget class="QListView" name="category_listView"/>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout">

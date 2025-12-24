@@ -56,6 +56,19 @@ Manager::Manager(QWidget *parent)
     loadCategories();
     loadSongList();
 
+    //默认加载第一项
+    if (m_listModel->rowCount() > 0) {
+        QModelIndex firstIndex = m_listModel->index(0, 0);
+        loadEditInfo(firstIndex);
+        ui->listView->setCurrentIndex(firstIndex);
+    }
+    QStandardItemModel* categoryModel = qobject_cast<QStandardItemModel*>(ui->category_listView->model());
+    if (categoryModel && categoryModel->rowCount() > 0) {
+        QModelIndex firstCateIndex = categoryModel->index(0, 0);
+        loadCateInfo(firstCateIndex);
+        ui->category_listView->setCurrentIndex(firstCateIndex);
+    }
+
     //加载详细信息
     connect(ui->listView, &QListView::clicked,
             this, &Manager::loadEditInfo);
@@ -65,6 +78,10 @@ Manager::Manager(QWidget *parent)
             this, &Manager::loadCateInfo);
     connect(ui->category_listView, &QListView::doubleClicked,
             this, &Manager::loadCateInfo);
+
+    //双击删除
+    connect(ui->file_listView, &QListView::doubleClicked,
+            this, &Manager::onFileListDoubleClicked);
 
     // 连接类型切换信号，切换时清空文件列表
     connect(ui->s_type_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -245,6 +262,38 @@ void Manager::fileListUpdate(){
     ui->file_listView->setModel(m_file_list);
 }
 
+//选择文件的窗口槽函数
+void Manager::on_fPathpushButton_clicked(){
+    const int idx = ui->s_type_comboBox->currentIndex(); // 0=PDF  1=图片
+    //QStringList files;
+    m_files.clear();
+
+    if (idx == 0) { // PDF 单文件
+        QString f = QFileDialog::getOpenFileName(
+            this,
+            tr("选择 PDF"),
+            ui->fPathlineEdit->text(),
+            tr("PDF 文件 (*.pdf)"));
+        if (!f.isEmpty()) m_files << f;
+    } else {        // 图片 多文件
+        m_files = QFileDialog::getOpenFileNames(
+            this,
+            tr("选择图片"),
+            ui->fPathlineEdit->text(),
+            tr("图片 (*.png *.jpg *.jpeg *.bmp)"));
+    }
+
+    // 把结果写回 LineEdit（用 ; 分隔）
+    if (m_files.isEmpty()) return;
+
+    ui->fPathlineEdit->setText(m_files.join(";"));
+
+    //把路径列表写进 QListView
+    fileListUpdate();
+
+    ui->s_remark_textEdit->setText(si.m_s_remark);
+}
+
 //当文件类型改变时清空文件列表
 void Manager::onTypeChanged(int index)
 {
@@ -288,3 +337,84 @@ void Manager::loadCateInfo(const QModelIndex &index){
         ui->cateremark_textEdit->setText(q.value(1).toString());
     }
 }
+
+//pushButton_savesong
+void Manager::on_pushButton_savesong_clicked(){
+    qDebug("Manager:Save Song Edit");
+
+    Consql::ScoreMeta meta;
+    meta.name      = ui->s_name_lineEdit->text().trimmed();
+    meta.composer  = ui->s_composer_lineEdit->text().trimmed();
+    meta.key       = ui->s_key_comboBox->currentText();
+    meta.categoryId = ui->c_id_comboBox->currentData().toInt();
+    meta.version   = ui->s_version_lineEdit->text().trimmed();
+    meta.type      = ui->s_type_comboBox->currentText();
+    meta.remark    = ui->s_remark_textEdit->toPlainText().trimmed();
+
+    if (m_files.isEmpty() || meta.name.isEmpty()) {
+        QMessageBox::warning(this, "提示", "歌名和文件不能为空！");
+        return;
+    }
+
+    // 检查文件列表是否有变化
+    QStringList oldFiles = Consql::instance()->getFilePathsBySongId(si.m_s_id);
+
+    // 判断是否有任何变化
+    bool hasChanges = false;
+
+    if (oldFiles != m_files) {
+        hasChanges = true;
+        qDebug() << "Manager:Files Changed -> " << si.m_s_id;
+    }
+
+    // 如果文件没有变化，只更新歌曲信息
+    if (!hasChanges) {
+        // 只更新歌曲基本信息
+        QSqlQuery q(Consql::instance()->database());
+        q.prepare("UPDATE Song SET s_name =?, s_composer =?, s_key =?, s_remark =?, s_version =?, s_type =?, c_id =? WHERE s_id=?");
+        q.addBindValue(meta.name);
+        q.addBindValue(meta.composer);
+        q.addBindValue(meta.key);
+        q.addBindValue(meta.remark);
+        q.addBindValue(meta.version);
+        q.addBindValue(meta.type);
+
+        int rawId = ui->c_id_comboBox->currentData().toInt();
+        if (rawId == 0) {
+            q.addBindValue(QVariant(QVariant::Int));
+        } else {
+            q.addBindValue(rawId);
+        }
+
+        q.addBindValue(si.m_s_id);
+
+        if (!q.exec()) {
+            QMessageBox::critical(this, "保存失败", QString("数据库修改错误！\n错误信息：%1").arg(q.lastError().text()));
+            return;
+        }
+
+        qDebug() << "Manager:Updated song info only";
+    } else {
+        // 文件有变化，使用 updateScoreWithFiles 方法
+        if (!Consql::instance()->updateScoreWithFiles(si.m_s_id, meta, m_files)) {
+            QMessageBox::critical(this, "保存失败", "更新文件记录失败！");
+            return;
+        }
+    }
+
+    // 成功提示
+    QMessageBox::information(this, "修改成功", "已成功修改乐谱信息！");
+
+    // 更新指纹
+    m_lastFilter.id = si.m_s_id;
+    m_lastFilter.name = meta.name;
+
+    // 重新加载列表
+    loadSongList();
+}
+
+//pushButton_delsong
+void Manager::on_pushButton_delsong_clicked(){
+    qDebug()<<"Manager:Delete Song Edit"<<si.m_s_id;
+}
+

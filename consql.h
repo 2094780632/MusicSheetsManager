@@ -47,7 +47,11 @@ public:
     void run(QString cmd);
     bool runFile(QString fname);
 
+    bool deleteFileRecordsBySongId(qint64 songId);
+    bool deleteSongRecordsBySongId(qint64 songId);
     qint64 insertScore(const ScoreMeta &meta, const QStringList &files);
+    bool updateScoreWithFiles(qint64 songId, const ScoreMeta &meta, const QStringList &files);
+    QStringList getFilePathsBySongId(qint64 songId);
 
 private:
     explicit Consql(QObject *parent = nullptr);
