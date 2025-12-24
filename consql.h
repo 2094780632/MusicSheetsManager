@@ -30,6 +30,7 @@ public:
     bool openDb(const QString &dbPath); // 首次或重新打开
     void closeDb();                     // 关闭并移除连接
     bool isOpen() const { return m_db.isOpen(); }
+    bool deleteSongWithFiles(qint64 songId);
 
 
     struct ScoreMeta {

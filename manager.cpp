@@ -1,6 +1,8 @@
 #include "manager.h"
 #include "ui_manager.h"
 #include "consql.h"
+#include <QFileDialog>
+#include <QDebug>
 
 Manager::Manager(QWidget *parent)
     : QTabWidget(parent)
@@ -10,80 +12,66 @@ Manager::Manager(QWidget *parent)
 {
     ui->setupUi(this);
 
-    /*
-    setWindowFlags(Qt::Window | Qt::CustomizeWindowHint |
-                   Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint |
-                   Qt::WindowCloseButtonHint);
-    */
-    //窗口 默认最大化
+    // 窗口设置
     setWindowFlag(Qt::Window, true);
     setWindowState(windowState() | Qt::WindowMaximized);
     setAttribute(Qt::WA_DeleteOnClose);
-
-    // 设置窗口标题
     setWindowTitle("乐谱管理");
 
+    // 布局设置
     ui->splitter->setStretchFactor(0,1);
     ui->splitter->setStretchFactor(1,2);
     ui->splitter_2->setStretchFactor(0,1);
     ui->splitter_2->setStretchFactor(1,2);
 
-    //调性选项设置
+    // 调性选项设置
     QStringList keys = {
-        //大调
-        "C",
-        "G",  "D",  "A",  "E",  "B",  "F♯",  "C♯",
-        "F",  "B♭", "E♭", "A♭", "D♭", "G♭", "C♭",
-        //和声小调
-        "Cm",
-        "Gm", "Dm", "Am", "Em", "Bm", "F♯m", "C♯m",
-        "Fm", "B♭m","E♭m","A♭m","D♭m","G♭m","C♭m",
-        //其他
+        // 大调
+        "C", "G", "D", "A", "E", "B", "F♯", "C♯",
+        "F", "B♭", "E♭", "A♭", "D♭", "G♭", "C♭",
+        // 和声小调
+        "Cm", "Gm", "Dm", "Am", "Em", "Bm", "F♯m", "C♯m",
+        "Fm", "B♭m", "E♭m", "A♭m", "D♭m", "G♭m", "C♭m",
+        // 其他
         "其他"
     };
     ui->s_key_comboBox->addItems(keys);
 
+    // 列表视图设置
     ui->listView->setMovement(QListView::Static);
     ui->listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
     ui->category_listView->setMovement(QListView::Static);
     ui->category_listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    //文件列表初始化
-    ui->file_listView->setModel(m_file_list);  // 设置文件列表模型
+    // 文件列表设置
+    ui->file_listView->setModel(m_file_list);
     ui->file_listView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+    // 加载数据
     loadCategories();
     loadSongList();
 
-    //默认加载第一项
+    // 默认加载第一项
     if (m_listModel->rowCount() > 0) {
         QModelIndex firstIndex = m_listModel->index(0, 0);
         loadEditInfo(firstIndex);
         ui->listView->setCurrentIndex(firstIndex);
     }
-    QStandardItemModel* categoryModel = qobject_cast<QStandardItemModel*>(ui->category_listView->model());
-    if (categoryModel && categoryModel->rowCount() > 0) {
-        QModelIndex firstCateIndex = categoryModel->index(0, 0);
-        loadCateInfo(firstCateIndex);
-        ui->category_listView->setCurrentIndex(firstCateIndex);
+
+    if (auto* categoryModel = qobject_cast<QStandardItemModel*>(ui->category_listView->model())) {
+        if (categoryModel->rowCount() > 0) {
+            QModelIndex firstCateIndex = categoryModel->index(0, 0);
+            loadCateInfo(firstCateIndex);
+            ui->category_listView->setCurrentIndex(firstCateIndex);
+        }
     }
 
-    //加载详细信息
-    connect(ui->listView, &QListView::clicked,
-            this, &Manager::loadEditInfo);
-    connect(ui->listView, &QListView::doubleClicked,
-            this, &Manager::loadEditInfo);
-    connect(ui->category_listView, &QListView::clicked,
-            this, &Manager::loadCateInfo);
-    connect(ui->category_listView, &QListView::doubleClicked,
-            this, &Manager::loadCateInfo);
-
-    //双击删除
-    connect(ui->file_listView, &QListView::doubleClicked,
-            this, &Manager::onFileListDoubleClicked);
-
-    // 连接类型切换信号，切换时清空文件列表
+    // 连接信号槽
+    connect(ui->listView, &QListView::clicked, this, &Manager::loadEditInfo);
+    connect(ui->listView, &QListView::doubleClicked, this, &Manager::loadEditInfo);
+    connect(ui->category_listView, &QListView::clicked, this, &Manager::loadCateInfo);
+    connect(ui->category_listView, &QListView::doubleClicked, this, &Manager::loadCateInfo);
+    connect(ui->file_listView, &QListView::doubleClicked, this, &Manager::onFileListDoubleClicked);
     connect(ui->s_type_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &Manager::onTypeChanged);
 }
@@ -93,328 +81,339 @@ Manager::~Manager()
     delete ui;
 }
 
-void Manager::loadSongList(){
+void Manager::loadSongList()
+{
     m_listModel->clear();
-    qDebug()<<"Manager:loadSongList";
+    qDebug() << "Manager:loadSongList";
 
     QSqlQuery q(Consql::instance()->database());
     q.prepare("SELECT s_id, s_name FROM Song ORDER BY s_id");
 
     if (!q.exec()) {
-        qDebug() << "Manager:   查询失败:" << q.lastError().text();
+        qDebug() << "Manager: 查询失败:" << q.lastError().text();
         return;
     }
 
-    while(q.next()){
-        si.m_s_id=q.value(0).toInt();
-        si.m_s_name=q.value(1).toString();
-        /*
-        si.m_s_composer=q.value(2).toString();
-        si.m_s_key=q.value(3).toString();
-        //si.m_s_addDate=q.value(4).toString();
-        //si.m_s_isFav=q.value(5).toBool();
-        si.m_s_remark=q.value(7).toString();
-        si.m_s_version=q.value(4).toString();
-        si.m_s_type=q.value(5).toString();
-        si.m_c_id=q.value(6).toInt();
-        */
-
+    while (q.next()) {
         QStandardItem *item = new QStandardItem();
-        item->setText(si.m_s_name);
-        item->setData(si.m_s_id, Qt::UserRole);
-        qDebug()<<"Manager:loadSongList->"<<si.m_s_name;
+        item->setText(q.value(1).toString());
+        item->setData(q.value(0).toLongLong(), Qt::UserRole);
         m_listModel->appendRow(item);
     }
     ui->listView->setModel(m_listModel);
 }
 
-//分类读取
 void Manager::loadCategories()
 {
-    //TAB-1
     ui->c_id_comboBox->clear();
-    // 第 0 项：「无」→ id = 0
     ui->c_id_comboBox->addItem("无", 0);
 
-    QStandardItemModel *cate_list = new QStandardItemModel();
-
+    auto *cate_list = new QStandardItemModel();
     QSqlQuery q(Consql::instance()->database());
     q.exec("SELECT c_id, c_name FROM Category ORDER BY c_name");
+
     while (q.next()) {
-        int  id   = q.value(0).toInt();
+        int id = q.value(0).toInt();
         QString name = q.value(1).toString();
-        ui->c_id_comboBox->addItem(name, id);   // 用户数据 = 真实主键
+        ui->c_id_comboBox->addItem(name, id);
 
-        QStandardItem *i = new QStandardItem();
-        i->setText(name);
-        i->setData(id,Qt::UserRole);
-        cate_list->appendRow(i);
+        auto *item = new QStandardItem(name);
+        item->setData(id, Qt::UserRole);
+        cate_list->appendRow(item);
     }
-
     ui->category_listView->setModel(cate_list);
 }
 
-void Manager::loadEditInfo(const QModelIndex &index){
+void Manager::loadEditInfo(const QModelIndex &index)
+{
     if (!index.isValid()) return;
 
     qint64 songId = index.data(Qt::UserRole).toLongLong();
     QString songName = index.data(Qt::DisplayRole).toString();
 
     if (m_lastFilter.id == songId && m_lastFilter.name == songName) {
-        qDebug() << "Manager:same filter, skip reload";
+        qDebug() << "Manager: same filter, skip reload";
         return;
     }
 
-    qDebug() << "Manager:Select Song -> ID:" << songId <<" - " << songName;
+    qDebug() << "Manager: Select Song -> ID:" << songId << " - " << songName;
 
-
-    // 清空上一次的文件列表
-    m_files.clear();  // 清空 QStringList
-    m_file_list->clear();  // 清空模型
+    // 清空文件列表
+    m_files.clear();
+    m_file_list->clear();
     ui->fPathlineEdit->clear();
 
     QSqlQuery q(Consql::instance()->database());
-    q.prepare("SELECT s_id, s_name, s_composer, s_key, s_version, s_type, c_id, s_remark FROM Song WHERE s_id = ? ORDER BY s_id LIMIT 1");
+    q.prepare("SELECT s_id, s_name, s_composer, s_key, s_version, s_type, c_id, s_remark "
+              "FROM Song WHERE s_id = ? LIMIT 1");
     q.addBindValue(songId);
+
     if (!q.exec() || !q.next()) {
-        qDebug()<<"Manager:Song NOT FOUND";
+        qDebug() << "Manager: Song NOT FOUND";
         return;
     }
 
-    //读取
-    si.m_s_id=q.value(0).toInt();
-    si.m_s_name=q.value(1).toString();
-    si.m_s_composer=q.value(2).toString();
-    si.m_s_key=q.value(3).toString();
-    si.m_s_remark=q.value(7).toString();
-    si.m_s_version=q.value(4).toString();
-    si.m_s_type=q.value(5).toString();
-    si.m_c_id=q.value(6).toInt();
+    // 读取歌曲信息
+    si.m_s_id = q.value(0).toLongLong();
+    si.m_s_name = q.value(1).toString();
+    si.m_s_composer = q.value(2).toString();
+    si.m_s_key = q.value(3).toString();
+    si.m_s_version = q.value(4).toString();
+    si.m_s_type = q.value(5).toString();
+    si.m_c_id = q.value(6).toLongLong();
+    si.m_s_remark = q.value(7).toString();
 
-    //显示
+    // 显示歌曲信息
     ui->s_name_lineEdit->setText(si.m_s_name);
     ui->s_composer_lineEdit->setText(si.m_s_composer);
+
     int keyIndex = ui->s_key_comboBox->findText(si.m_s_key);
-    if(keyIndex != -1){
-        ui->s_key_comboBox->setCurrentIndex(keyIndex);
-    }else{
-        qDebug()<<"Manager:key not found";
-    }
+    ui->s_key_comboBox->setCurrentIndex(keyIndex != -1 ? keyIndex : 0);
+
     ui->s_version_lineEdit->setText(si.m_s_version);
+
     int typeIndex = ui->s_type_comboBox->findText(si.m_s_type);
-    if(typeIndex != -1){
-        ui->s_type_comboBox->setCurrentIndex(typeIndex);
-    }else{
-        qDebug()<<"Manager:type not found";
-    }
-    //qDebug()<<si.m_c_id;
-    if(si.m_c_id>0){
-        q.prepare("SELECT c_id, c_name FROM Category WHERE c_id=?");
+    ui->s_type_comboBox->setCurrentIndex(typeIndex != -1 ? typeIndex : 0);
+
+    // 设置分类
+    if (si.m_c_id > 0) {
+        q.prepare("SELECT c_name FROM Category WHERE c_id = ?");
         q.addBindValue(si.m_c_id);
-        if (!q.exec() || !q.next()) {
-            qDebug()<<"Manager:category not found";
-            ui->c_id_comboBox->setCurrentIndex(0);
-        }else{
-            QString cname=q.value(1).toString();
+        if (q.exec() && q.next()) {
+            QString cname = q.value(0).toString();
             int cateIndex = ui->c_id_comboBox->findText(cname);
-            if(cateIndex != -1){
-                ui->c_id_comboBox->setCurrentIndex(cateIndex);
-            }else{
-                qDebug()<<"Manager:cateindex not found";
-            }
+            ui->c_id_comboBox->setCurrentIndex(cateIndex != -1 ? cateIndex : 0);
+        } else {
+            ui->c_id_comboBox->setCurrentIndex(0);
         }
-    }else{
+    } else {
         ui->c_id_comboBox->setCurrentIndex(0);
     }
 
-    //文件读取
-
+    // 读取文件
     q.prepare("SELECT f_path FROM File WHERE s_id = ? ORDER BY f_index");
     q.addBindValue(si.m_s_id);
 
-    if(!q.exec()){
-        qDebug()<<"Manager:filepath not found";
+    if (q.exec()) {
+        while (q.next()) {
+            m_files.append(q.value(0).toString());
+        }
+        ui->fPathlineEdit->setText(m_files.join(";"));
+    } else {
         ui->fPathlineEdit->setText("NOT FOUND");
     }
-    while(q.next()){
-        m_files.append(q.value(0).toString());
-    }
-    ui->fPathlineEdit->setText(m_files.join(";"));
 
-    //QStandardItemModel *file_list = new QStandardItemModel(ui->file_listView);
     fileListUpdate();
-
     ui->s_remark_textEdit->setText(si.m_s_remark);
 
-    //指纹
+    // 更新指纹
     m_lastFilter.id = songId;
     m_lastFilter.name = songName;
-
 }
 
-//同步list与model的更新
-void Manager::fileListUpdate(){
+void Manager::fileListUpdate()
+{
     m_file_list->clear();
-    for(const QString &i : m_files){
-        QStandardItem *item = new QStandardItem(i);
+    for (const QString &path : m_files) {
+        auto *item = new QStandardItem(path);
         m_file_list->appendRow(item);
     }
     ui->file_listView->setModel(m_file_list);
 }
 
-//选择文件的窗口槽函数
-void Manager::on_fPathpushButton_clicked(){
-    const int idx = ui->s_type_comboBox->currentIndex(); // 0=PDF  1=图片
-    //QStringList files;
+void Manager::on_fPathpushButton_clicked()
+{
+    int idx = ui->s_type_comboBox->currentIndex(); // 0=PDF, 1=图片
     m_files.clear();
 
-    if (idx == 0) { // PDF 单文件
-        QString f = QFileDialog::getOpenFileName(
-            this,
-            tr("选择 PDF"),
-            ui->fPathlineEdit->text(),
-            tr("PDF 文件 (*.pdf)"));
-        if (!f.isEmpty()) m_files << f;
-    } else {        // 图片 多文件
+    if (idx == 0) { // PDF
+        QString file = QFileDialog::getOpenFileName(
+            this, "选择 PDF", ui->fPathlineEdit->text(), "PDF 文件 (*.pdf)");
+        if (!file.isEmpty()) m_files << file;
+    } else { // 图片
         m_files = QFileDialog::getOpenFileNames(
-            this,
-            tr("选择图片"),
-            ui->fPathlineEdit->text(),
-            tr("图片 (*.png *.jpg *.jpeg *.bmp)"));
+            this, "选择图片", ui->fPathlineEdit->text(),
+            "图片 (*.png *.jpg *.jpeg *.bmp)");
     }
 
-    // 把结果写回 LineEdit（用 ; 分隔）
-    if (m_files.isEmpty()) return;
-
-    ui->fPathlineEdit->setText(m_files.join(";"));
-
-    //把路径列表写进 QListView
-    fileListUpdate();
-
-    ui->s_remark_textEdit->setText(si.m_s_remark);
+    if (!m_files.isEmpty()) {
+        ui->fPathlineEdit->setText(m_files.join(";"));
+        fileListUpdate();
+    }
 }
 
-//当文件类型改变时清空文件列表
 void Manager::onTypeChanged(int index)
 {
-    Q_UNUSED(index); // 不使用index参数，但保持函数签名一致
-    // 清空文件列表模型
+    Q_UNUSED(index);
     m_file_list->clear();
-    ui->file_listView->setModel(m_file_list);
-    // 清空路径显示
     ui->fPathlineEdit->clear();
 }
 
-//双击删除
 void Manager::onFileListDoubleClicked(const QModelIndex &index)
 {
     if (!index.isValid()) return;
 
     int row = index.row();
-
-    // 从模型中删除
-    m_file_list->removeRow(row);
-
-    // 从内存列表中删除
     if (row >= 0 && row < m_files.size()) {
+        m_file_list->removeRow(row);
         m_files.removeAt(row);
+        ui->fPathlineEdit->setText(m_files.join(";"));
     }
-
-    // 更新 LineEdit
-    ui->fPathlineEdit->setText(m_files.join(";"));
 }
 
-//加载分类详细信息
-void Manager::loadCateInfo(const QModelIndex &index){
+void Manager::loadCateInfo(const QModelIndex &index)
+{
+    if (!index.isValid()) return;
+
     QSqlQuery q(Consql::instance()->database());
-    q.prepare("SELECT c_name, c_remark FROM Category WHERE c_id = ? LIMIT 1;");
+    q.prepare("SELECT c_name, c_remark FROM Category WHERE c_id = ? LIMIT 1");
     q.addBindValue(index.data(Qt::UserRole).toInt());
-    if (!q.exec() || !q.next()) {
-        qDebug()<<"Manager:Category NOT FOUND->"<<index.data(Qt::UserRole).toInt();
-        return;
-    }else{
+
+    if (q.exec() && q.next()) {
         ui->catename_lineEdit->setText(q.value(0).toString());
         ui->cateremark_textEdit->setText(q.value(1).toString());
     }
 }
 
-//pushButton_savesong
-void Manager::on_pushButton_savesong_clicked(){
-    qDebug("Manager:Save Song Edit");
+void Manager::on_pushButton_savesong_clicked()
+{
+    qDebug() << "Manager: Save Song Edit";
 
-    Consql::ScoreMeta meta;
-    meta.name      = ui->s_name_lineEdit->text().trimmed();
-    meta.composer  = ui->s_composer_lineEdit->text().trimmed();
-    meta.key       = ui->s_key_comboBox->currentText();
-    meta.categoryId = ui->c_id_comboBox->currentData().toInt();
-    meta.version   = ui->s_version_lineEdit->text().trimmed();
-    meta.type      = ui->s_type_comboBox->currentText();
-    meta.remark    = ui->s_remark_textEdit->toPlainText().trimmed();
-
-    if (m_files.isEmpty() || meta.name.isEmpty()) {
-        QMessageBox::warning(this, "提示", "歌名和文件不能为空！");
+    // 验证
+    if (si.m_s_id <= 0) {
+        QMessageBox::warning(this, "提示", "请先选择要保存的歌曲！");
         return;
     }
 
-    // 检查文件列表是否有变化
-    QStringList oldFiles = Consql::instance()->getFilePathsBySongId(si.m_s_id);
-
-    // 判断是否有任何变化
-    bool hasChanges = false;
-
-    if (oldFiles != m_files) {
-        hasChanges = true;
-        qDebug() << "Manager:Files Changed -> " << si.m_s_id;
+    if (m_files.isEmpty()) {
+        QMessageBox::warning(this, "提示", "文件列表不能为空！");
+        return;
     }
 
-    // 如果文件没有变化，只更新歌曲信息
-    if (!hasChanges) {
-        // 只更新歌曲基本信息
+    Consql::ScoreMeta meta;
+    meta.name = ui->s_name_lineEdit->text().trimmed();
+    meta.composer = ui->s_composer_lineEdit->text().trimmed();
+    meta.key = ui->s_key_comboBox->currentText();
+    meta.categoryId = ui->c_id_comboBox->currentData().toInt();
+    meta.version = ui->s_version_lineEdit->text().trimmed();
+    meta.type = ui->s_type_comboBox->currentText();
+    meta.remark = ui->s_remark_textEdit->toPlainText().trimmed();
+
+    if (meta.name.isEmpty()) {
+        QMessageBox::warning(this, "提示", "歌名不能为空！");
+        return;
+    }
+
+    // 检查文件是否有变化
+    QStringList oldFiles = Consql::instance()->getFilePathsBySongId(si.m_s_id);
+    bool filesChanged = (oldFiles != m_files);
+
+    // 执行更新
+    bool success = false;
+    if (filesChanged) {
+        success = Consql::instance()->updateScoreWithFiles(si.m_s_id, meta, m_files);
+    } else {
+        // 只更新基本信息
         QSqlQuery q(Consql::instance()->database());
-        q.prepare("UPDATE Song SET s_name =?, s_composer =?, s_key =?, s_remark =?, s_version =?, s_type =?, c_id =? WHERE s_id=?");
+        q.prepare("UPDATE Song SET s_name=?, s_composer=?, s_key=?, "
+                  "s_remark=?, s_version=?, s_type=?, c_id=? WHERE s_id=?");
         q.addBindValue(meta.name);
         q.addBindValue(meta.composer);
         q.addBindValue(meta.key);
         q.addBindValue(meta.remark);
         q.addBindValue(meta.version);
         q.addBindValue(meta.type);
-
-        int rawId = ui->c_id_comboBox->currentData().toInt();
-        if (rawId == 0) {
-            q.addBindValue(QVariant(QVariant::Int));
-        } else {
-            q.addBindValue(rawId);
-        }
-
+        q.addBindValue(meta.categoryId == 0 ? QVariant() : QVariant(meta.categoryId));
         q.addBindValue(si.m_s_id);
-
-        if (!q.exec()) {
-            QMessageBox::critical(this, "保存失败", QString("数据库修改错误！\n错误信息：%1").arg(q.lastError().text()));
-            return;
-        }
-
-        qDebug() << "Manager:Updated song info only";
-    } else {
-        // 文件有变化，使用 updateScoreWithFiles 方法
-        if (!Consql::instance()->updateScoreWithFiles(si.m_s_id, meta, m_files)) {
-            QMessageBox::critical(this, "保存失败", "更新文件记录失败！");
-            return;
-        }
+        success = q.exec();
     }
 
-    // 成功提示
-    QMessageBox::information(this, "修改成功", "已成功修改乐谱信息！");
-
-    // 更新指纹
-    m_lastFilter.id = si.m_s_id;
-    m_lastFilter.name = meta.name;
-
-    // 重新加载列表
-    loadSongList();
+    if (success) {
+        QMessageBox::information(this, "修改成功", "已成功修改乐谱信息！");
+        m_lastFilter.id = si.m_s_id;
+        m_lastFilter.name = meta.name;
+        loadSongList();
+    } else {
+        QMessageBox::critical(this, "保存失败", "数据库修改错误！");
+    }
 }
 
-//pushButton_delsong
-void Manager::on_pushButton_delsong_clicked(){
-    qDebug()<<"Manager:Delete Song Edit"<<si.m_s_id;
+void Manager::on_pushButton_delsong_clicked()
+{
+    if (si.m_s_id <= 0) {
+        QMessageBox::warning(this, "提示", "请先选择要删除的歌曲！");
+        return;
+    }
+
+    QString songName = ui->s_name_lineEdit->text().trimmed();
+    if (songName.isEmpty()) songName = QString("ID: %1").arg(si.m_s_id);
+
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, "确认删除",
+        QString("确定要删除歌曲《%1》吗？\n\n此操作将删除歌曲信息、文件记录和物理文件。\n此操作不可恢复！")
+            .arg(songName),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply != QMessageBox::Yes) {
+        qDebug() << "删除操作已取消";
+        return;
+    }
+
+    qint64 deletingSongId = si.m_s_id;
+    bool success = Consql::instance()->deleteSongWithFiles(deletingSongId);
+
+    if (success) {
+        QMessageBox::information(this, "删除成功", QString("已成功删除歌曲《%1》").arg(songName));
+
+        clearEditFields();
+        loadSongList();
+        loadCategories();
+
+        if (m_listModel->rowCount() > 0) {
+            QModelIndex firstIndex = m_listModel->index(0, 0);
+            loadEditInfo(firstIndex);
+            ui->listView->setCurrentIndex(firstIndex);
+        }
+    } else {
+        QMessageBox::critical(this, "删除失败", QString("删除歌曲《%1》失败！").arg(songName));
+    }
 }
 
+void Manager::clearEditFields()
+{
+    // 清空歌曲编辑区域
+    ui->s_name_lineEdit->clear();
+    ui->s_composer_lineEdit->clear();
+    ui->s_key_comboBox->setCurrentIndex(0);
+    ui->s_version_lineEdit->clear();
+    ui->s_type_comboBox->setCurrentIndex(0);
+    ui->c_id_comboBox->setCurrentIndex(0);
+    ui->s_remark_textEdit->clear();
+
+    // 清空文件区域
+    ui->fPathlineEdit->clear();
+    m_files.clear();
+    m_file_list->clear();
+
+    // 重置结构体
+    si.m_s_id = 0;
+    si.m_s_name.clear();
+    si.m_s_composer.clear();
+    si.m_s_key.clear();
+    si.m_s_remark.clear();
+    si.m_s_version.clear();
+    si.m_s_type.clear();
+    si.m_c_id = 0;
+
+    // 重置指纹
+    m_lastFilter.id = 0;
+    m_lastFilter.name.clear();
+
+    // 清空选择
+    ui->listView->clearSelection();
+    ui->category_listView->clearSelection();
+
+    // 清空分类编辑区域
+    ui->catename_lineEdit->clear();
+    ui->cateremark_textEdit->clear();
+}

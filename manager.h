@@ -2,11 +2,10 @@
 #define MANAGER_H
 
 #include <QTabWidget>
-#include <QDialog>
-#include <QStandardItem>
-#include <QVariant>
-#include <QStringListModel>
-#include <QFileDialog>
+#include <QStandardItemModel>
+#include <QStringList>
+#include <QMessageBox>
+#include <QSqlQuery>
 
 namespace Ui {
 class Manager;
@@ -25,7 +24,6 @@ private slots:
     void loadCateInfo(const QModelIndex &index);
     void onTypeChanged(int index);
     void onFileListDoubleClicked(const QModelIndex &index);
-
     void on_pushButton_delsong_clicked();
     void on_pushButton_savesong_clicked();
     void on_fPathpushButton_clicked();
@@ -39,32 +37,23 @@ private:
     void loadSongList();
     void loadCategories();
     void fileListUpdate();
-
-    void clearAllFields();
-    void resetInternalState();
     void clearEditFields();
 
-    struct songInfo
-    {
-        qint64 m_s_id;
+    struct SongInfo {
+        qint64 m_s_id = 0;
         QString m_s_name;
         QString m_s_composer;
         QString m_s_key;
-        //QString m_s_addDate;
-        //bool m_s_isFav;
         QString m_s_remark;
         QString m_s_version;
         QString m_s_type;
-        qint64 m_c_id;
-    }si;
+        qint64 m_c_id = 0;
+    } si;
 
-    //内容指纹锁
     struct FilterCache {
-        int id = -1;
-        QString name = "-";
-    };
-    FilterCache m_lastFilter;
-
+        qint64 id = 0;
+        QString name;
+    } m_lastFilter;
 };
 
 #endif // MANAGER_H
