@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
     qDebug("Hello World!");
-    //初始化设置
+    // 初始化设置
     //初次启动？
     QString configPath;
     bool needInitDb=false;
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
         AppConfig::instance(configPath)->load();
         needInitDb=false;
     }
-    //数据库初始化
+    // 数据库初始化
     QString dbPath = QDir(AppConfig::instance()->getStoragePath()).filePath("data.db");
     if (!Consql::instance(dbPath)){  //首次打开单例
         QMessageBox::critical(nullptr, "致命错误", "无法打开数据库！");
