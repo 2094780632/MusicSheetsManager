@@ -145,8 +145,7 @@
      <string>工具(&amp;T)</string>
     </property>
     <addaction name="action_B"/>
-    <addaction name="action"/>
-    <addaction name="action_2"/>
+    <addaction name="action_DM"/>
    </widget>
    <addaction name="menu_f"/>
    <addaction name="menu_T"/>
@@ -210,12 +209,12 @@
     <string>清空全部数据</string>
    </property>
   </action>
-  <action name="action">
+  <action name="action_DM">
    <property name="icon">
-    <iconset theme="QIcon::ThemeIcon::GoUp"/>
+    <iconset theme="QIcon::ThemeIcon::SyncSynchronizing"/>
    </property>
    <property name="text">
-    <string>导出乐谱数据</string>
+    <string>导入与导出数据</string>
    </property>
   </action>
   <action name="action_2">

@@ -6,6 +6,8 @@
 #include "importdialog.h"
 #include "scoreviewer.h"
 #include "manager.h"
+#include "datamigrater.h"
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -74,7 +76,11 @@ MainWindow::MainWindow(QWidget *parent)
             this, &MainWindow::onListViewCustomMenu);
 
     //管理页面
+    connect(ui->action_DM,&QAction::triggered,this,&MainWindow::toDM);
+    //数据管理页面
     connect(ui->action_M,&QAction::triggered,this,&MainWindow::toManager);
+    //节拍器
+    connect(ui->action_B,&QAction::triggered,this,&MainWindow::toMetronome);
     //帮助页面
     connect(ui->action_about,&QAction::triggered,this,&MainWindow::helpPage);
     //用户手册
@@ -450,5 +456,26 @@ void MainWindow::toManager(){
     //this->setEnabled(false);
 
     m->show();
+
+}
+//数据管理
+void MainWindow::toDM(){
+    qDebug()<<"MainWindow:toDM";
+    DataMigrater *dm=new DataMigrater(this);
+
+    //阻塞主窗口启动
+    dm->setWindowModality(Qt::WindowModal);
+    dm->setAttribute(Qt::WA_DeleteOnClose);
+    connect(dm, &DataMigrater::destroyed, this, [this](){
+        this->setEnabled(true);
+    });
+    //this->setEnabled(false);
+
+    dm->show();
+
+}
+
+//节拍器
+void MainWindow::toMetronome(){
 
 }

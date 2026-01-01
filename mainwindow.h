@@ -16,6 +16,8 @@
 #include <QMenu>
 #include <QAction>
 
+//#include "metronomewidget.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -33,6 +35,8 @@ public:
 private slots:
     int importSheet();
     void toManager();
+    void toMetronome();
+    void toDM();
     void helpPage();
     void userManual();
     void deleteFirstStartSign();
@@ -53,5 +57,6 @@ private:
         QString value = "-";
     };
     FilterCache m_lastFilter;
+
 };
 #endif // MAINWINDOW_H
