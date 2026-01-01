@@ -149,7 +149,16 @@ bool ScoreViewer::eventFilter(QObject *obj, QEvent *event)
 }
 
 void ScoreViewer::showImg(qint64 index){
+    if (m_pdfView) {
+        m_pdfView->setVisible(false);
+        // 为了确保完全隐藏，可以设置最小尺寸
+        m_pdfView->setMinimumSize(0, 0);
+        m_pdfView->setMaximumSize(0, 0);
+    }
+
     ui->graphicsView->setVisible(true);
+
+    //this->updateGeometry();
 
     QGraphicsScene *scene = new QGraphicsScene(this);
 

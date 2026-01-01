@@ -5,13 +5,14 @@
 
 #include "importdialog.h"
 #include "scoreviewer.h"
-#include "manager.h""
+#include "manager.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    //第一页
 
     //窗体初始化 ui 里写了
     //setWindowTitle("Music Sheets Manager");
@@ -48,6 +49,8 @@ MainWindow::MainWindow(QWidget *parent)
     rebuildTree(ByAll);
     refreshScoreGrid();
 
+
+
     //连接
     //导入乐谱
     connect(ui->action_O,&QAction::triggered,this,&MainWindow::importSheet);
@@ -61,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
                 //打开
                 auto *viewer = new ScoreViewer(id, this); // this = 主窗口，做父对象方便生命周期管理
                 viewer->show();
+                //viewer->dumpObjectTree();
             });
 
     //listView菜单
