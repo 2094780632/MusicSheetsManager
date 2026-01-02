@@ -34,8 +34,7 @@
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>首次打开，需要进行初始化设置
-（将仓库地址设为同目录下的'ExampleDataSet'文件夹可以查看样例数据）</string>
+        <string>首次打开，需要进行初始化设置</string>
        </property>
        <property name="wordWrap">
         <bool>true</bool>

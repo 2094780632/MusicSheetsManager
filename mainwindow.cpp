@@ -153,10 +153,32 @@ void MainWindow::helpPage()
 // 用户手册
 void MainWindow::userManual()
 {
-    QMessageBox::information(this,
-                             "占位符",
-                             "Sth Here");
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("用户手册");
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setTextFormat(Qt::RichText);
+
+    QString linkText = QString(
+        "详情请点击这里："
+        "<a href='https://github.com/2094780632/MusicSheetsManager/blob/main/README.md'>"
+        "查看用户手册"
+        "</a>"
+        );
+
+    msgBox.setText(linkText);
+
+    // 使用旧式 SIGNAL/SLOT 语法
+    connect(&msgBox, SIGNAL(linkActivated(QString)),
+            this, SLOT(onLinkActivated(QString)));
+
+    msgBox.exec();
     qDebug() << "MainWindow: userManual";
+}
+
+// 添加槽函数
+void MainWindow::onLinkActivated(const QString &link)
+{
+    QDesktopServices::openUrl(QUrl(link));
 }
 
 // 重置初次启动标识

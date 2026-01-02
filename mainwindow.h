@@ -4,6 +4,9 @@
 #include <QMainWindow>
 #include <QDebug>
 
+#include <QDesktopServices>
+#include <QUrl>
+
 #include <QtPdf/QPdfDocument>
 #include <QtPdf/QPdfPageRenderer>
 
@@ -45,6 +48,7 @@ private slots:
     void deleteFirstStartSign();
     void clearData();
     void onListViewCustomMenu(const QPoint &pos);
+    void onLinkActivated(const QString &link);
 
 private:
     Ui::MainWindow *ui;
