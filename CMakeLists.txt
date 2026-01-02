@@ -31,6 +31,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         scoreviewer.h scoreviewer.cpp scoreviewer.ui
         manager.h manager.cpp manager.ui
         datamigrater.h datamigrater.cpp datamigrater.ui
+        metronome.h metronome.cpp metronome.ui
 
     )
 

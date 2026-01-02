@@ -34,7 +34,10 @@ public:
 
 private slots:
     int importSheet();
+    void toScoreViewer(const QModelIndex &idx);
+    void toScoreViewer(const int sid);
     void toManager();
+    void showSongInfo(qint64 songId);
     void toMetronome();
     void toDM();
     void helpPage();

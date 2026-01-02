@@ -14,7 +14,7 @@
    <string>TabWidget</string>
   </property>
   <property name="currentIndex">
-   <number>0</number>
+   <number>1</number>
   </property>
   <widget class="QWidget" name="tab_import">
    <attribute name="title">
@@ -59,7 +59,14 @@
    <attribute name="title">
     <string>导出数据</string>
    </attribute>
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>导出数据为zip文件</string>
+      </property>
+     </widget>
+    </item>
     <item>
      <widget class="QPushButton" name="export_pushButton">
       <property name="text">

@@ -2,7 +2,10 @@
 #include "ui_manager.h"
 #include "consql.h"
 #include "importdialog.h"
-
+#include <QDebug>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QSqlQuery>
 
 Manager::Manager(QWidget *parent)
     : QTabWidget(parent)
@@ -21,10 +24,10 @@ Manager::Manager(QWidget *parent)
     setCurrentIndex(0);
 
     // 布局设置
-    ui->splitter->setStretchFactor(0,1);
-    ui->splitter->setStretchFactor(1,2);
-    ui->splitter_2->setStretchFactor(0,1);
-    ui->splitter_2->setStretchFactor(1,2);
+    ui->splitter->setStretchFactor(0, 1);
+    ui->splitter->setStretchFactor(1, 2);
+    ui->splitter_2->setStretchFactor(0, 1);
+    ui->splitter_2->setStretchFactor(1, 2);
 
     // 调性选项设置
     QStringList keys = {
@@ -76,17 +79,20 @@ Manager::Manager(QWidget *parent)
     connect(ui->file_listView, &QListView::doubleClicked, this, &Manager::onFileListDoubleClicked);
     connect(ui->s_type_comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &Manager::onTypeChanged);
+
+    qDebug() << "Manager: 构造函数";
 }
 
 Manager::~Manager()
 {
+    qDebug() << "Manager: 析构函数";
     delete ui;
 }
 
 void Manager::loadSongList()
 {
     m_listModel->clear();
-    qDebug() << "Manager:loadSongList";
+    qDebug() << "Manager: loadSongList";
 
     QSqlQuery q(Consql::instance()->database());
     q.prepare("SELECT s_id, s_name FROM Song ORDER BY s_id");
@@ -103,6 +109,8 @@ void Manager::loadSongList()
         m_listModel->appendRow(item);
     }
     ui->listView->setModel(m_listModel);
+
+    qDebug() << "Manager: 加载歌曲列表完成，共" << m_listModel->rowCount() << "首歌曲";
 }
 
 void Manager::loadCategories()
@@ -114,6 +122,7 @@ void Manager::loadCategories()
     QSqlQuery q(Consql::instance()->database());
     q.exec("SELECT c_id, c_name FROM Category ORDER BY c_name");
 
+    int count = 0;
     while (q.next()) {
         int id = q.value(0).toInt();
         QString name = q.value(1).toString();
@@ -122,8 +131,11 @@ void Manager::loadCategories()
         auto *item = new QStandardItem(name);
         item->setData(id, Qt::UserRole);
         cate_list->appendRow(item);
+        count++;
     }
     ui->category_listView->setModel(cate_list);
+
+    qDebug() << "Manager: 加载分类完成，共" << count << "个分类";
 }
 
 void Manager::loadEditInfo(const QModelIndex &index)
@@ -201,8 +213,10 @@ void Manager::loadEditInfo(const QModelIndex &index)
             m_files.append(q.value(0).toString());
         }
         ui->fPathlineEdit->setText(m_files.join(";"));
+        qDebug() << "Manager: 加载文件完成，共" << m_files.size() << "个文件";
     } else {
         ui->fPathlineEdit->setText("NOT FOUND");
+        qDebug() << "Manager: 未找到文件";
     }
 
     fileListUpdate();
@@ -225,6 +239,8 @@ void Manager::fileListUpdate()
 
 void Manager::on_fPathpushButton_clicked()
 {
+    qDebug() << "Manager: 点击文件路径按钮";
+
     int idx = ui->s_type_comboBox->currentIndex(); // 0=PDF, 1=图片
     m_files.clear();
 
@@ -232,10 +248,12 @@ void Manager::on_fPathpushButton_clicked()
         QString file = QFileDialog::getOpenFileName(
             this, "选择 PDF", ui->fPathlineEdit->text(), "PDF 文件 (*.pdf)");
         if (!file.isEmpty()) m_files << file;
+        qDebug() << "Manager: 选择的PDF文件:" << file;
     } else { // 图片
         m_files = QFileDialog::getOpenFileNames(
             this, "选择图片", ui->fPathlineEdit->text(),
             "图片 (*.png *.jpg *.jpeg *.bmp)");
+        qDebug() << "Manager: 选择的图片文件数量:" << m_files.size();
     }
 
     if (!m_files.isEmpty()) {
@@ -246,13 +264,19 @@ void Manager::on_fPathpushButton_clicked()
 
 void Manager::onTypeChanged(int index)
 {
+    qDebug() << "Manager: 文件类型改变，当前索引:" << index;
+
     Q_UNUSED(index);
     m_file_list->clear();
     ui->fPathlineEdit->clear();
+
+    qDebug() << "Manager: 文件列表已清空";
 }
 
 void Manager::onFileListDoubleClicked(const QModelIndex &index)
 {
+    qDebug() << "Manager: 双击文件列表项";
+
     if (!index.isValid()) return;
 
     int row = index.row();
@@ -260,6 +284,7 @@ void Manager::onFileListDoubleClicked(const QModelIndex &index)
         m_file_list->removeRow(row);
         m_files.removeAt(row);
         ui->fPathlineEdit->setText(m_files.join(";"));
+        qDebug() << "Manager: 删除文件列表项，剩余文件数:" << m_files.size();
     }
 }
 
@@ -287,6 +312,12 @@ void Manager::on_pushButton_savesong_clicked()
     meta.type = ui->s_type_comboBox->currentText();
     meta.remark = ui->s_remark_textEdit->toPlainText().trimmed();
 
+    qDebug() << "Manager: 保存参数 - 名称:" << meta.name
+             << "作曲家:" << meta.composer
+             << "调性:" << meta.key
+             << "分类ID:" << meta.categoryId
+             << "文件数量:" << m_files.size();
+
     if (meta.name.isEmpty()) {
         QMessageBox::warning(this, "提示", "歌名不能为空！");
         return;
@@ -299,9 +330,10 @@ void Manager::on_pushButton_savesong_clicked()
     // 执行更新
     bool success = false;
     if (filesChanged) {
+        qDebug() << "Manager: 文件有变化，调用 updateScoreWithFiles";
         success = Consql::instance()->updateScoreWithFiles(si.m_s_id, meta, m_files);
     } else {
-        // 只更新基本信息
+        qDebug() << "Manager: 文件无变化，只更新基本信息";
         QSqlQuery q(Consql::instance()->database());
         q.prepare("UPDATE Song SET s_name=?, s_composer=?, s_key=?, "
                   "s_remark=?, s_version=?, s_type=?, c_id=? WHERE s_id=?");
@@ -317,17 +349,21 @@ void Manager::on_pushButton_savesong_clicked()
     }
 
     if (success) {
+        qDebug() << "Manager: 保存成功";
         QMessageBox::information(this, "修改成功", "已成功修改乐谱信息！");
         m_lastFilter.id = si.m_s_id;
         m_lastFilter.name = meta.name;
         loadSongList();
     } else {
+        qDebug() << "Manager: 保存失败";
         QMessageBox::critical(this, "保存失败", "数据库修改错误！");
     }
 }
 
 void Manager::on_pushButton_delsong_clicked()
 {
+    qDebug() << "Manager: 删除歌曲";
+
     if (si.m_s_id <= 0) {
         QMessageBox::warning(this, "提示", "请先选择要删除的歌曲！");
         return;
@@ -343,7 +379,7 @@ void Manager::on_pushButton_delsong_clicked()
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply != QMessageBox::Yes) {
-        qDebug() << "删除操作已取消";
+        qDebug() << "Manager: 删除操作已取消";
         return;
     }
 
@@ -351,6 +387,7 @@ void Manager::on_pushButton_delsong_clicked()
     bool success = Consql::instance()->deleteSongWithFiles(deletingSongId);
 
     if (success) {
+        qDebug() << "Manager: 删除成功，歌曲ID:" << deletingSongId;
         QMessageBox::information(this, "删除成功", QString("已成功删除歌曲《%1》").arg(songName));
 
         clearEditFields();
@@ -363,12 +400,15 @@ void Manager::on_pushButton_delsong_clicked()
             ui->listView->setCurrentIndex(firstIndex);
         }
     } else {
+        qDebug() << "Manager: 删除失败，歌曲ID:" << deletingSongId;
         QMessageBox::critical(this, "删除失败", QString("删除歌曲《%1》失败！").arg(songName));
     }
 }
 
 void Manager::clearEditFields()
 {
+    qDebug() << "Manager: 清空编辑字段";
+
     // 清空歌曲编辑区域
     ui->s_name_lineEdit->clear();
     ui->s_composer_lineEdit->clear();
@@ -406,20 +446,22 @@ void Manager::clearEditFields()
     ui->cateremark_textEdit->clear();
 }
 
-int Manager::on_pushButton_importSong_clicked(){
+int Manager::on_pushButton_importSong_clicked()
+{
+    qDebug() << "Manager: 导入歌曲";
+
     ImportDialog i;
     if (i.exec() == QDialog::Accepted) {
         // 导入成功，刷新歌曲列表
+        qDebug() << "Manager: 导入成功，刷新列表";
         loadSongList();
         return 1;
     }
+    qDebug() << "Manager: 导入取消";
     return 0;
 }
 
-
-
-//TAB2 分类管理实现
-
+// TAB2 分类管理实现
 
 void Manager::on_pushButton_newcat_clicked()
 {
@@ -442,7 +484,7 @@ void Manager::on_pushButton_newcat_clicked()
         defaultName = QString("%1%2").arg(baseName).arg(counter);
         counter++;
 
-        //应该不会超过的吧
+        // 应该不会超过的吧
         if (counter > 65536) {
             QMessageBox::warning(this, "提示", "无法生成唯一分类名，请手动输入！");
             return;
@@ -457,12 +499,12 @@ void Manager::on_pushButton_newcat_clicked()
     if (!q.exec()) {
         QMessageBox::critical(this, "创建失败",
                               QString("无法创建新分类：\n%1").arg(q.lastError().text()));
-        qDebug() << "Failed to insert new category:" << q.lastError().text();
+        qDebug() << "Manager: Failed to insert new category:" << q.lastError().text();
         return;
     }
 
     qint64 newId = q.lastInsertId().toLongLong();
-    qDebug() << "Created new category, ID:" << newId << "Name:" << defaultName;
+    qDebug() << "Manager: Created new category, ID:" << newId << "Name:" << defaultName;
 
     // 刷新分类列表
     loadCategories();
@@ -511,6 +553,7 @@ void Manager::on_pushButton_savecat_clicked()
     // 检查名称是否已更改
     if (newName == m_originalCateName) {
         // 名称未改变，直接更新
+        qDebug() << "Manager: 分类名称未改变，只更新备注";
         QSqlQuery q(Consql::instance()->database());
         q.prepare("UPDATE Category SET c_remark = ? WHERE c_id = ?");
         q.addBindValue(remark);
@@ -559,7 +602,7 @@ void Manager::on_pushButton_savecat_clicked()
         return;
     }
 
-    qDebug() << "Updated category ID:" << m_currentCategoryId
+    qDebug() << "Manager: Updated category ID:" << m_currentCategoryId
              << "New name:" << newName;
 
     // 更新原始名称记录
@@ -588,6 +631,8 @@ void Manager::on_pushButton_savecat_clicked()
 
 void Manager::on_pushButton_delcat_clicked()
 {
+    qDebug() << "Manager: 删除分类";
+
     if (m_currentCategoryId <= 0) {
         QMessageBox::warning(this, "提示", "请先选择要删除的分类！");
         return;
@@ -627,7 +672,7 @@ void Manager::on_pushButton_delcat_clicked()
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply != QMessageBox::Yes) {
-        qDebug() << "删除分类操作已取消";
+        qDebug() << "Manager: 删除分类操作已取消";
         return;
     }
 
@@ -647,7 +692,7 @@ void Manager::on_pushButton_delcat_clicked()
         return;
     }
 
-    qDebug() << "Deleted category ID:" << m_currentCategoryId
+    qDebug() << "Manager: Deleted category ID:" << m_currentCategoryId
              << "Rows affected:" << rowsAffected;
 
     QMessageBox::information(this, "删除成功",
@@ -682,6 +727,7 @@ void Manager::loadCateInfo(const QModelIndex &index)
         m_originalCateName.clear();
         ui->catename_lineEdit->clear();
         ui->cateremark_textEdit->clear();
+        qDebug() << "Manager: 无效的分类索引";
         return;
     }
 
