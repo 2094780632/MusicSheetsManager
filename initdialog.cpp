@@ -12,12 +12,25 @@ InitDialog::InitDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
+    /*
     // 默认值设置为文档下的应用文件夹
     QString docDir = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
     QString folder = QDir(docDir).absoluteFilePath("MusicSheetsManager");   // Documents/MusicSheetsManager
     ui->PathlineEdit->setText(folder);
+    */
 
-    qDebug() << "InitDialog: 构造函数，默认路径:" << folder;
+    //Windows下改为 一定有权限的 应用路径
+    QString appDataDir;
+    #if defined(Q_OS_WIN)
+        // Windows: AppData/Local/MusicSheetsManager
+        appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+    #endif
+
+    QDir().mkpath(appDataDir);
+
+    ui->PathlineEdit->setText(appDataDir);
+
+    qDebug() << "InitDialog: 构造函数，默认路径:" << appDataDir;
 }
 
 InitDialog::~InitDialog()
