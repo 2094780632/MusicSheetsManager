@@ -38,25 +38,25 @@ protected:
 
 private slots:
     // 缩放相关
-    void zoomPdf(qreal factor);
-    void zoomPdfIn();
-    void zoomPdfOut();
-    void resetPdfTransform();
+    void zoomPdf(qreal factor);     //响应缩放
+    void zoomPdfIn();               //放大
+    void zoomPdfOut();              //缩小
+    void resetPdfTransform();       //重置缩放
     //void updateZoomLabel();
 
     //翻页相关
-    void goToPage(int pageIndex);  // 跳转到指定页面
-    void prevPage();               // 上一页
-    void nextPage();               // 下一页
+    void goToPage(int pageIndex);   //跳转到指定页面
+    void prevPage();                //上一页
+    void nextPage();                //下一页
+
+    void loadSongInfo(qint64 id);   //加载歌曲详情
+    void loadScore(qint64 id);      //渲染乐谱
+    void showPdf();                 //展示 PDF类型的 乐谱
+    void showImg(qint64 index);     //展示 图片类型的 乐谱
+    void addPdfShortcuts();         //为 PDF类型 添加快捷键
 
 private:
     Ui::ScoreViewer *ui;
-
-    void loadSongInfo(qint64 id);
-    void loadScore(qint64 id);
-    void showPdf();
-    void showImg(qint64 index);
-    void addPdfShortcuts();
 
     /*
     s_id INTEGER PRIMARY KEY AUTOINCREMENT, --id

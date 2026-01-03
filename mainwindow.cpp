@@ -109,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent)
                 if (dim == ByAll) {
                     val = "-1";
                 }
-                // 2. 其他维度 → 一律用「分组名」过滤
+                // 2. 其他维度  一律用「分组名」过滤
                 else {
                     // 先找到这一行的「根节点文字」
                     QModelIndex rootIdx = idx;
@@ -389,7 +389,7 @@ void MainWindow::rebuildTree(Dim dim)
     m_treeModel->setHorizontalHeaderLabels(QStringList() << "分组");
     ui->treeView->setRootIsDecorated(true);
 
-    /* 统一查询：按维度排序，避免多次 SQL */
+    // 统一查询：按维度排序，避免多次 SQL
     QSqlQuery q(Consql::instance()->database());
     switch (dim) {
     case ByAll:

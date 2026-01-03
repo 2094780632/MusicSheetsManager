@@ -21,18 +21,18 @@ class Consql : public QObject
 {
     Q_OBJECT
 public:
-    //单例
+    //单例实现
     static Consql *instance(const QString &dbPath = QString());
 
     Consql(const Consql &) = delete;
     Consql &operator=(const Consql &) = delete;
 
-    bool openDb(const QString &dbPath); // 首次或重新打开
-    void closeDb();                     // 关闭并移除连接
+    bool openDb(const QString &dbPath);             // 首次或重新打开
+    void closeDb();                                 // 关闭并移除连接
     bool isOpen() const { return m_db.isOpen(); }
     bool deleteSongWithFiles(qint64 songId);
 
-
+    //数据结构
     struct ScoreMeta {
         QString name;
         QString composer;
@@ -43,16 +43,16 @@ public:
         QString remark;
     };
 
-    int initDb();       //初始化数据库
-    QSqlDatabase database() const { return m_db; };//只读访问
-    void run(QString cmd);
-    bool runFile(QString fname);
+    int initDb();                                   //初始化数据库
+    QSqlDatabase database() const { return m_db; }; //只读访问
+    void run(QString cmd);                          //运行 指定指令
+    bool runFile(QString fname);                    //运行 指定SQL脚本文件
 
-    bool deleteFileRecordsBySongId(qint64 songId);
-    bool deleteSongRecordsBySongId(qint64 songId);
-    qint64 insertScore(const ScoreMeta &meta, const QStringList &files);
-    bool updateScoreWithFiles(qint64 songId, const ScoreMeta &meta, const QStringList &files);
-    QStringList getFilePathsBySongId(qint64 songId);
+    bool deleteFileRecordsBySongId(qint64 songId);                                              //删除文件记录 以s_id
+    bool deleteSongRecordsBySongId(qint64 songId);                                              //删除歌曲记录 以s_id
+    qint64 insertScore(const ScoreMeta &meta, const QStringList &files);                        //新增乐谱记录
+    bool updateScoreWithFiles(qint64 songId, const ScoreMeta &meta, const QStringList &files);  //更新乐谱文件记录
+    QStringList getFilePathsBySongId(qint64 songId);                                            //获取文件路径 以s_id
 
 private:
     explicit Consql(QObject *parent = nullptr);

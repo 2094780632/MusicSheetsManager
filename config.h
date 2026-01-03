@@ -14,9 +14,9 @@ class AppConfig : public QObject
 {
     Q_OBJECT
 public:
-    static AppConfig* instance(const QString &iniPath = QString());          // 单例入口
-    void load();                           // 读设置
-    void save();                           // 存设置
+    static AppConfig* instance(const QString &iniPath = QString());         // 单例入口
+    void load();                                                            // 读设置
+    void save();                                                            // 存设置
 
     // 设置属性字段
     QString version;

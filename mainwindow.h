@@ -36,19 +36,19 @@ public:
     ~MainWindow();
 
 private slots:
-    int importSheet();
-    void toScoreViewer(const QModelIndex &idx);
-    void toScoreViewer(const int sid);
-    void toManager();
-    void showSongInfo(qint64 songId);
-    void toMetronome();
-    void toDM();
-    void helpPage();
-    void userManual();
-    void deleteFirstStartSign();
-    void clearData();
-    void onListViewCustomMenu(const QPoint &pos);
-    void onLinkActivated(const QString &link);
+    int importSheet();                              //转到 导入乐谱 窗口
+    void toScoreViewer(const QModelIndex &idx);     //转到 乐谱浏览器 以索引方式
+    void toScoreViewer(const int sid);              //转到 乐谱浏览器 以s_id方式
+    void toManager();                               //转到 数据管理器
+    void showSongInfo(qint64 songId);               //乐谱右键菜单 获取歌曲详情
+    void toMetronome();                             //转到 节拍器
+    void toDM();                                    //转到 数据迁移工具
+    void helpPage();                                //打开 帮助页面
+    void userManual();                              //打开 用户手册页面
+    void deleteFirstStartSign();                    //清除 非首次启动标识
+    void clearData();                               //清除 数据
+    void onListViewCustomMenu(const QPoint &pos);   //乐谱右键菜单
+    void onLinkActivated(const QString &link);      //用户手册页面 超链接跳转
 
 private:
     Ui::MainWindow *ui;

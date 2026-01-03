@@ -20,12 +20,12 @@ public:
     ~InitDialog();
 
 private slots:
-    void on_PathpushButton_clicked();
+    void on_PathpushButton_clicked();               //设置初始化路径
 
-    void on_buttonBox_accepted();
+    void on_buttonBox_accepted();                   //完成按钮 槽函数
 
 signals:
-    void configPathChanged(const QString &path);
+    void configPathChanged(const QString &path);    //文件路径改变信号
 
 private:
     Ui::InitDialog *ui;
